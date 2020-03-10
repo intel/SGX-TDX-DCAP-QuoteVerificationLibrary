@@ -29,25 +29,22 @@
  *
  */
 
-#ifndef SGX_DCAP_PARSERS_OID_UTILS_H
-#define SGX_DCAP_PARSERS_OID_UTILS_H
+#ifndef SGXECDSAATTESTATION_RUNTIMEEXCEPTION_H
+#define SGXECDSAATTESTATION_RUNTIMEEXCEPTION_H
 
-#include "OpensslTypes.h"
 
-#include <openssl/asn1.h>
+namespace intel { namespace sgx { namespace qvl {
 
-#include <vector>
+class RuntimeException : public std::exception
+{
+public:
+    Status getStatus() const { return status; }
+    explicit RuntimeException(Status p_status): status(p_status) {};
+protected:
+    Status status;
 
-namespace intel { namespace sgx { namespace dcap { namespace crypto {
+};
 
-void validateOid(const std::string& oidName, const ASN1_TYPE *oidValue, int expectedType);
-void validateOid(const std::string& oidName, const ASN1_TYPE *oidValue, int expectedType, int expectedLength);
-std::vector<uint8_t> oidToBytes(const ASN1_TYPE *oidValue);
-uint8_t oidToByte(const ASN1_TYPE *oidValue);
-unsigned int oidToUInt(const ASN1_TYPE *oidValue);
-int oidToEnum(const ASN1_TYPE *oidValue);
-STACK_OF_ASN1TYPE_uptr oidToStack(const ASN1_TYPE *oidValue);
+}}} // namespace intel { namespace sgx { namespace qvl {
 
-}}}} // namespace intel { namespace sgx { namespace dcap { namespace crypto {
-
-#endif // SGX_DCAP_PARSERS_OID_UTILS_H
+#endif //SGXECDSAATTESTATION_RUNTIMEEXCEPTION_H
