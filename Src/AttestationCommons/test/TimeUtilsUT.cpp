@@ -35,7 +35,7 @@
 
 #include <chrono>
 
-using namespace intel::sgx::dcap::parser;
+using namespace intel::sgx::dcap;
 using namespace ::testing;
 
 struct TimeUtilsUT: public testing::TestWithParam<time_t>

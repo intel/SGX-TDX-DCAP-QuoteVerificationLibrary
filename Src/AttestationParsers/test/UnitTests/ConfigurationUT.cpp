@@ -29,27 +29,41 @@
  *
  */
 
-#include "OpensslHelpers/Bytes.h"
+#include "SgxEcdsaAttestation/AttestationParsers.h"
 
 #include <gtest/gtest.h>
 
+using namespace intel::sgx::dcap::parser::x509;
 using namespace intel::sgx::dcap::parser;
 using namespace ::testing;
 
-struct BytesUT: public testing::Test {
-    Bytes val1 = { 0x00, 0x01, 0x09, 0x0A, 0x0D, 0x0F, 0x14, 0x9F, 0xAF, 0xFF };
-    Bytes val2 = { 0x00, 0x01, 0x09, 0x0A, 0x0D, 0x0F, 0x14, 0x9F, 0xAF, 0xFF,
-                   0x00, 0x01, 0x09, 0x0A, 0x0D, 0x0F, 0x14, 0x9F, 0xAF, 0xFF };
-};
+struct ConfigurationUT: public testing::Test {};
 
-TEST_F(BytesUT, concatenation)
+TEST_F(ConfigurationUT, configurationConstructors)
 {
-    ASSERT_NE(val1, val2);
-    ASSERT_EQ(val1 + val1, val2);
+    ASSERT_NO_THROW(Configuration());
+    ASSERT_NO_THROW(Configuration(false, false, false));
 }
 
-TEST_F(BytesUT, hexStringToBytes)
+TEST_F(ConfigurationUT, configurationGetters)
 {
-    ASSERT_EQ(intel::sgx::dcap::parser::hexStringToBytes("0001090A0D0f149FAFFf"), val1);
-    ASSERT_NE(intel::sgx::dcap::parser::hexStringToBytes("0001090A0D0f149FAFFf"), val2);
+    const auto& configuration = Configuration();
+
+    ASSERT_TRUE(configuration.isSmtEnabled());
+    ASSERT_TRUE(configuration.isDynamicPlatform());
+    ASSERT_TRUE(configuration.isCachedKeys());
+
+    ASSERT_TRUE(Configuration(true, false, false).isDynamicPlatform());
+    ASSERT_TRUE(Configuration(false, true, false).isCachedKeys());
+    ASSERT_TRUE(Configuration(false, false, true).isSmtEnabled());
+}
+
+TEST_F(ConfigurationUT, configurationOperators)
+{
+    const auto& configuration = Configuration();
+
+    ASSERT_EQ(configuration, Configuration());
+    ASSERT_FALSE(configuration == Configuration(true, false, false));
+    ASSERT_FALSE(configuration == Configuration(false, true, false));
+    ASSERT_FALSE(configuration == Configuration(false, false, true));
 }

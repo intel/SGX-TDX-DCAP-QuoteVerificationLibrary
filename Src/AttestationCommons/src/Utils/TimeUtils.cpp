@@ -37,13 +37,14 @@
 #include <sstream>
 #include <iomanip>
 #include <regex>
+#include <time.h>
 #endif
 
 extern struct tm *
 sgxssl__gmtime64(const time_t * timep);
 time_t sgxssl_mktime(struct tm*);
 
-namespace intel { namespace sgx { namespace dcap { namespace parser {
+namespace intel { namespace sgx { namespace dcap {
 
 struct tm * gmtime(const time_t * timep)
 {
@@ -105,7 +106,15 @@ namespace standard
 {
     struct tm * gmtime(const time_t * timep)
     {
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4996)
+#endif
         return std::gmtime(timep);
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
     }
 
     time_t mktime(struct tm* tmp)
@@ -331,4 +340,4 @@ namespace enclave
 
 } // namespace enclave
 
-}}}} // namespace intel { namespace sgx { namespace dcap { namespace parser {
+}}} // namespace intel { namespace sgx { namespace dcap {

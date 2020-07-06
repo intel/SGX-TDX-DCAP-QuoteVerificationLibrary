@@ -29,57 +29,44 @@
  *
  */
 
-#include "OpensslInit.h"
-#include "OpensslTypes.h"
+#include "SgxEcdsaAttestation/AttestationParsers.h"
 
-#ifdef OPENSSL_THREADS
-	#define OPENSSL_THREADS_SUPPORT_CHECK true
-#else
-	#define OPENSSL_THREADS_SUPPORT_CHECK false
-#endif
+#include "OpensslHelpers/OidUtils.h"
+#include "ParserUtils.h"
 
-namespace intel { namespace sgx { namespace qvl { namespace crypto {
+namespace intel { namespace sgx { namespace dcap { namespace parser { namespace x509 {
 
-static bool initialized = false;
-
-bool init()
+ProcessorPckCertificate::ProcessorPckCertificate(const Certificate& certificate): PckCertificate(certificate)
 {
-    static_assert(OPENSSL_THREADS_SUPPORT_CHECK == true, "OpenSSL report no thread support");
-    
-    if(initialized)
+    auto sgxExtensions = crypto::make_unique(getSgxExtensions());
+    setMembers(sgxExtensions.get());
+}
+
+ProcessorPckCertificate ProcessorPckCertificate::parse(const std::string& pem)
+{
+    return ProcessorPckCertificate(pem);
+}
+
+// Private
+
+ProcessorPckCertificate::ProcessorPckCertificate(const std::string& pem): PckCertificate(pem)
+{
+    auto sgxExtensions = crypto::make_unique(getSgxExtensions());
+    setMembers(sgxExtensions.get());
+}
+
+
+void ProcessorPckCertificate::setMembers(stack_st_ASN1_TYPE *sgxExtensions)
+{
+    PckCertificate::setMembers(sgxExtensions);
+
+    const auto stackEntries = sk_ASN1_TYPE_num(sgxExtensions);
+    if(stackEntries != PROCESSOR_CA_EXTENSION_COUNT)
     {
-        return true;
+        std::string err = "OID [" + oids::SGX_EXTENSION + "] expected to contain [" + std::to_string(PROCESSOR_CA_EXTENSION_COUNT) +
+                          "] elements when given [" + std::to_string(stackEntries) + "]";
+        throw InvalidExtensionException(err);
     }
-
-    // they do not return error codes, but
-    // they can fail if memory allocation will fail
-    // not a big deal in practice but nevertheless
-    // we should handle this here somehow and return false
-#ifndef SGX_TRUSTED
-    ERR_load_crypto_strings();
-    OpenSSL_add_all_algorithms();
-#endif
-    // as we're using openssl 1.1.0 we do not need to pass
-    // locking callback for thread safety
-    // openssl will recognize on which platform we're currently on
-    // and will create proper locks
-
-    initialized = true;
-    return true;
 }
 
-void clear()
-{
-#ifndef SGX_TRUSTED
-    if(initialized)
-	{					
-		EVP_cleanup();
-		CRYPTO_cleanup_all_ex_data();
-		ERR_free_strings();
-
-		initialized = false;
-	}
-#endif
-}
-
-}}}} // namespace intel { namespace sgx { namespace qvl { namespace crypto {
+}}}}} // namespace intel { namespace sgx { namespace dcap { namespace parser { namespace x509 {

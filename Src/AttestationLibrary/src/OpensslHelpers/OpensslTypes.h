@@ -29,8 +29,8 @@
  *
  */
 
-#ifndef INTEL_SGX_QVL_OPENSSLTYPEDEFS_H_
-#define INTEL_SGX_QVL_OPENSSLTYPEDEFS_H_
+#ifndef SGX_DCAP_COMMONS_OPENSSL_TYPES_H_
+#define SGX_DCAP_COMMONS_OPENSSL_TYPES_H_
 
 #include <tuple>
 #include <memory>
@@ -47,7 +47,7 @@
 #include <openssl/pem.h>
 #include <openssl/cmac.h>
 
-namespace intel { namespace sgx { namespace qvl { namespace crypto {
+namespace intel { namespace sgx { namespace dcap { namespace crypto {
 
 /* Deleter declarations */
 static void freeEVP_CIPHER_CTX(EVP_CIPHER_CTX* evp_cipher_ctx);
@@ -304,7 +304,7 @@ inline X509_STORE_CTX_uptr make_unique(X509_STORE_CTX* raw_pointer)
 }
 
 
-}}}} // namespace intel { namespace sgx { namespace qvl { namespace crypto {
+}}}} // namespace intel { namespace sgx { namespace dcap { namespace crypto {
 
 #endif
 

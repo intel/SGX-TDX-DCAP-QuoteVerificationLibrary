@@ -29,58 +29,48 @@
  *
  */
 
-#include "OpensslInit.h"
+#ifndef SGX_DCAP_PARSERS_TIMEUTILS_H
+#define SGX_DCAP_PARSERS_TIMEUTILS_H
 
-#include "OpensslTypes.h"
 
-#include <mutex>
-#include <thread>
+#include <ctime>
+#include <string>
 
-#ifdef OPENSSL_THREADS
-	#define OPENSSL_THREADS_SUPPORT_CHECK true
-#else
-	#define OPENSSL_THREADS_SUPPORT_CHECK false
-#endif
+namespace intel { namespace sgx { namespace dcap {
 
-namespace intel { namespace sgx { namespace dcap { namespace parser {
+struct tm * gmtime(const time_t * timep);
+time_t mktime(struct tm* tmp);
+time_t getCurrentTime(const time_t *input);
+struct tm getTimeFromString(const std::string& date);
+time_t getEpochTimeFromString(const std::string& date);
+bool isValidTimeString(const std::string& timeString);
 
-static bool initialized = false;
-
-bool init()
+#ifndef SGX_TRUSTED
+namespace standard
 {
-    static_assert(OPENSSL_THREADS_SUPPORT_CHECK == true, "OpenSSL report no thread support");
-    
-    if(initialized)
-    {
-        return true;
-    }
+    struct tm * gmtime(const time_t * timep);
+    time_t mktime(struct tm* tmp);
+    time_t getCurrentTime(const time_t *in_time);
+    struct tm getTimeFromString(const std::string& date);
+    bool isValidTimeString(const std::string& timeString);
+}
+#endif // SGX_TRUSTED
 
-    // they do not return error codes, but
-    // they can fail if memory allocation will fail
-    // not a big deal in practice but nevertheless
-    // we should handle this here somehow and return false
-    ERR_load_crypto_strings();
-    OpenSSL_add_all_algorithms();
-     
-    // as we're using openssl 1.1.0 we do not need to pass
-    // locking callback for thread safety
-    // openssl will recognize on which platform we're currently on
-    // and will create proper locks
+namespace enclave
+{
+    struct tm * gmtime(const time_t * timep);
+    time_t mktime(struct tm* tmp);
 
-    initialized = true;
-    return true;
+    /**
+        calling this function with in_time != 0, will set the static parameter current_time and return its value.
+        calling this function with in_time == 0, will return the value of current_time (which should be initialized with in_time!=0).
+    */
+    time_t getCurrentTime(const time_t *in_time);
+    struct tm getTimeFromString(const std::string& date);
+    bool isValidTimeString(const std::string& timeString);
 }
 
-void clear()
-{
-    if(initialized)
-	{					
-		EVP_cleanup();
-		CRYPTO_cleanup_all_ex_data();
-		ERR_free_strings();
+}}}
 
-		initialized = false;
-	}
-}
 
-}}}} // namespace intel { namespace sgx { namespace dcap { namespace parser {
+#endif //SGX_DCAP_PARSERS_TIMEUTILS_H

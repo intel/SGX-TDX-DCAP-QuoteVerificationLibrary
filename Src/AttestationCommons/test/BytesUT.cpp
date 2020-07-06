@@ -29,48 +29,27 @@
  *
  */
 
-#ifndef SGX_DCAP_PARSERS_TIMEUTILS_H
-#define SGX_DCAP_PARSERS_TIMEUTILS_H
+#include "OpensslHelpers/Bytes.h"
 
+#include <gtest/gtest.h>
 
-#include <ctime>
-#include <string>
+using namespace intel::sgx::dcap;
+using namespace ::testing;
 
-namespace intel { namespace sgx { namespace dcap { namespace parser {
+struct BytesUT: public testing::Test {
+    Bytes val1 = { 0x00, 0x01, 0x09, 0x0A, 0x0D, 0x0F, 0x14, 0x9F, 0xAF, 0xFF };
+    Bytes val2 = { 0x00, 0x01, 0x09, 0x0A, 0x0D, 0x0F, 0x14, 0x9F, 0xAF, 0xFF,
+                   0x00, 0x01, 0x09, 0x0A, 0x0D, 0x0F, 0x14, 0x9F, 0xAF, 0xFF };
+};
 
-struct tm * gmtime(const time_t * timep);
-time_t mktime(struct tm* tmp);
-time_t getCurrentTime(const time_t *input);
-struct tm getTimeFromString(const std::string& date);
-time_t getEpochTimeFromString(const std::string& date);
-bool isValidTimeString(const std::string& timeString);
-
-#ifndef SGX_TRUSTED
-namespace standard
+TEST_F(BytesUT, concatenation)
 {
-    struct tm * gmtime(const time_t * timep);
-    time_t mktime(struct tm* tmp);
-    time_t getCurrentTime(const time_t *in_time);
-    struct tm getTimeFromString(const std::string& date);
-    bool isValidTimeString(const std::string& timeString);
-}
-#endif // SGX_TRUSTED
-
-namespace enclave
-{
-    struct tm * gmtime(const time_t * timep);
-    time_t mktime(struct tm* tmp);
-
-    /**
-        calling this function with in_time != 0, will set the static parameter current_time and return its value.
-        calling this function with in_time == 0, will return the value of current_time (which should be initialized with in_time!=0).
-    */
-    time_t getCurrentTime(const time_t *in_time);
-    struct tm getTimeFromString(const std::string& date);
-    bool isValidTimeString(const std::string& timeString);
+    ASSERT_NE(val1, val2);
+    ASSERT_EQ(val1 + val1, val2);
 }
 
-}}}}
-
-
-#endif //SGX_DCAP_PARSERS_TIMEUTILS_H
+TEST_F(BytesUT, hexStringToBytes)
+{
+    ASSERT_EQ(intel::sgx::dcap::hexStringToBytes("0001090A0D0f149FAFFf"), val1);
+    ASSERT_NE(intel::sgx::dcap::hexStringToBytes("0001090A0D0f149FAFFf"), val2);
+}

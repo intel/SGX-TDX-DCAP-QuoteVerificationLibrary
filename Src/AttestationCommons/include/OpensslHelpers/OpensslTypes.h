@@ -29,9 +29,11 @@
  *
  */
 
-#ifndef SGX_DCAP_PARSERS_OPENSSL_TYPES_H_
-#define SGX_DCAP_PARSERS_OPENSSL_TYPES_H_
+#ifndef SGX_DCAP_COMMONS_OPENSSL_TYPES_H_
+#define SGX_DCAP_COMMONS_OPENSSL_TYPES_H_
 
+#include <tuple>
+#include <memory>
 #include <openssl/asn1.h>
 #include <openssl/ssl.h>
 #include <openssl/ec.h>
@@ -44,9 +46,6 @@
 #include <openssl/x509v3.h>
 #include <openssl/pem.h>
 #include <openssl/cmac.h>
-
-#include <tuple>
-#include <memory>
 
 namespace intel { namespace sgx { namespace dcap { namespace crypto {
 
