@@ -41,8 +41,12 @@ std::string tcbInfoJsonGenerator(int version, std::string issueDate, std::string
 
 std::string tcbInfoJsonGenerator(std::string tcbInfoBody, std::string signature);
 
-std::string tcbInfoJsonBody(int version, std::string issueDate, std::string nextUpdate, std::string fmspc,
-                            std::string pceId, std::array<int, 16> tcb, int pcesvn, std::string status);
+std::string tcbInfoJsonV1Body(int version, std::string issueDate, std::string nextUpdate, std::string fmspc,
+                              std::string pceId, std::array<int, 16> tcb, int pcesvn, std::string status);
+
+std::string tcbInfoJsonV2Body(int version, std::string issueDate, std::string nextUpdate, std::string fmspc,
+                              std::string pceId, std::array<int, 16> tcb, int pcesvn, std::string tcbStatus,
+                              int tcbType, int tcbEvaluationDataNumber, std::string tcbDate);
 
 std::array<int, 16> getRandomTcb();
 
