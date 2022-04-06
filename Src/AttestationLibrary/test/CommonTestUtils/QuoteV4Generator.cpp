@@ -29,7 +29,8 @@
  *
  */
 
-#include "QuoteGenerator.h"
+#include "QuoteV4Generator.h"
+#include "QuoteUtils.h"
 #include <type_traits>
 #include <algorithm>
 
@@ -76,11 +77,11 @@ Bytes convertToBytes(DataType& data)
     return ConvertToBytesDetail::convert(data);
 }
 
-constexpr uint16_t DEFAULT_VERSION = 3;
+constexpr uint16_t DEFAULT_VERSION = 4;
 constexpr uint16_t DEFAULT_ATTESTATION_KEY_TYPE = 2;
 constexpr char INTEL_QE_VENDOR_UUID[] = "939A7233F79C4CA9940A0DB3957F0607";
 
-QuoteGenerator::EnclaveReport defaultEnclaveReport()
+QuoteV4Generator::EnclaveReport defaultEnclaveReport()
 {
     return {
             {}, //cpusvn
@@ -98,13 +99,11 @@ QuoteGenerator::EnclaveReport defaultEnclaveReport()
     };
 }
 
-QuoteGenerator::QuoteHeader defaultHeader()
+QuoteV4Generator::QuoteHeader defaultHeader()
 {
     return {
             DEFAULT_VERSION,
             DEFAULT_ATTESTATION_KEY_TYPE,
-            0,
-            0,
             0,
             0,
             {{0}},
@@ -112,49 +111,49 @@ QuoteGenerator::QuoteHeader defaultHeader()
     };
 }
 
-QuoteGenerator::EcdsaSignature defaultSignature()
+QuoteV4Generator::EcdsaSignature defaultSignature()
 {
-    QuoteGenerator::EcdsaSignature ret{ {{0}} }; 
+    QuoteV4Generator::EcdsaSignature ret{{{0}} };
     return ret;
 }
 
-QuoteGenerator::EcdsaPublicKey defaultPubKey()
+QuoteV4Generator::EcdsaPublicKey defaultPubKey()
 {
     return {
         {{0}}
     };
 }
 
-QuoteGenerator::QeAuthData defaultQeAuthData()
+QuoteV4Generator::QEReportCertificationData defaultQEReportCertificationData()
 {
     return {
-        0,
-        {}
+            defaultEnclaveReport(),
+            defaultSignature(),
+            {},
+            {}
     };
 }
 
-QuoteGenerator::QeCertData defaultQeCertData()
+QuoteV4Generator::CertificationData defaultCertificationData()
 {
+    auto qEReportCertificationData = defaultQEReportCertificationData().bytes();
     return {
-        0,
-        0,
-        {}
+        6,
+        static_cast<uint32_t>(qEReportCertificationData.size()),
+        qEReportCertificationData
     };
 }
 
 } //anonymous namespace
 
-QuoteGenerator::QuoteGenerator() :
+QuoteV4Generator::QuoteV4Generator() :
         header(defaultHeader()),
         enclaveReport(defaultEnclaveReport()),
         quoteAuthData{
-            test::QUOTE_AUTH_DATA_MIN_SIZE,
-            defaultSignature(),
-            defaultPubKey(),
-            defaultEnclaveReport(), //qeReport
-            defaultSignature(), //qeReportSignature
-            defaultQeAuthData(),
-            defaultQeCertData()
+                test::QUOTE_V4_AUTH_DATA_MIN_SIZE,
+                defaultSignature(),
+                defaultPubKey(),
+                defaultCertificationData()
         }
 {
     static_assert(sizeof(QuoteHeader) == QUOTE_HEADER_SIZE, "Incorrect header size");
@@ -166,112 +165,84 @@ QuoteGenerator::QuoteGenerator() :
     std::copy(uuid.begin(), uuid.end(), header.qeVendorId.begin());
 }
 
-QuoteGenerator& QuoteGenerator::withQeSvn(uint16_t qeSvn)
-{
-    header.qeSvn = qeSvn;
-    return *this;
-}
-
-QuoteGenerator& QuoteGenerator::withPceSvn(uint16_t pceSvn)
-{
-    header.pceSvn = pceSvn;
-    return *this;
-}
-
-QuoteGenerator& QuoteGenerator::withHeader(const QuoteHeader& _header)
+QuoteV4Generator& QuoteV4Generator::withHeader(const QuoteHeader& _header)
 {
     this->header = _header;
     return *this;
 }
 
-QuoteGenerator& QuoteGenerator::withEnclaveReport(const EnclaveReport& _body)
+QuoteV4Generator& QuoteV4Generator::withEnclaveReport(const EnclaveReport& _body)
 {
     this->enclaveReport = _body;
     return *this;
 }
 
-QuoteGenerator& QuoteGenerator::withAuthDataSize(uint32_t size)
+QuoteV4Generator& QuoteV4Generator::withTDReport(const TDReport& _body)
 {
-    quoteAuthData.authDataSize = size;
+    this->tdReport = _body;
     return *this;
 }
 
-QuoteGenerator& QuoteGenerator::withQeReport(const EnclaveReport& report)
-{
-    quoteAuthData.qeReport = report;
-    return *this;
-}
-
-QuoteGenerator& QuoteGenerator::withQeReportSignature(const EcdsaSignature& sign)
-{
-    quoteAuthData.qeReportSignature = sign;
-    return *this;
-}
-
-QuoteGenerator& QuoteGenerator::withQuoteSignature(const EcdsaSignature& signature)
+QuoteV4Generator& QuoteV4Generator::withQuoteSignature(const EcdsaSignature& signature)
 {
     quoteAuthData.ecdsaSignature = signature;
     return *this; 
 }
 
-QuoteGenerator& QuoteGenerator::withAttestationKey(const EcdsaPublicKey& pubKey)
+QuoteV4Generator& QuoteV4Generator::withAttestationKey(const EcdsaPublicKey& pubKey)
 {
     quoteAuthData.ecdsaAttestationKey = pubKey;
     return *this;
 }
 
-QuoteGenerator& QuoteGenerator::withAuthData(const QuoteGenerator::QuoteAuthData& authData)
+QuoteV4Generator& QuoteV4Generator::withAuthDataSize(const uint32_t authDataSize)
+{
+    quoteAuthData.authDataSize = authDataSize;
+    return *this;
+}
+
+QuoteV4Generator& QuoteV4Generator::withAuthData(const QuoteV4Generator::QuoteAuthData& authData)
 {
     quoteAuthData = authData;
     return *this;
 }
 
-QuoteGenerator& QuoteGenerator::withQeAuthData(const QuoteGenerator::QeAuthData& qeAuth)
+QuoteV4Generator& QuoteV4Generator::withCertificationData(const CertificationData& certificationData)
 {
-    quoteAuthData.qeAuthData = qeAuth;
+    quoteAuthData.certificationData = certificationData;
     return *this;
 }
 
-QuoteGenerator& QuoteGenerator::withQeAuthData(const Bytes& authData)
+QuoteV4Generator& QuoteV4Generator::withCertificationData(uint16_t type, const Bytes& keyData)
 {
-    quoteAuthData.qeAuthData.data = authData;
-    quoteAuthData.qeAuthData.size = static_cast<uint16_t>(authData.size());
+    quoteAuthData.certificationData.keyDataType = type;
+    quoteAuthData.certificationData.keyData = keyData;
+    quoteAuthData.certificationData.size = static_cast<uint32_t>(keyData.size());
     return *this;
 }
 
-QuoteGenerator& QuoteGenerator::withQeCertData(const QeCertData& qeCertData)
-{
-    quoteAuthData.qeCertData = qeCertData;
-    return *this;
-}
-
-QuoteGenerator& QuoteGenerator::withQeCertData(uint16_t type, const Bytes& keyData)
-{
-    quoteAuthData.qeCertData.keyDataType = type;
-    quoteAuthData.qeCertData.keyData = keyData;
-    quoteAuthData.qeCertData.size = static_cast<uint32_t>(keyData.size());
-    return *this;
-}
-
-Bytes QuoteGenerator::buildSgxQuote()
+Bytes QuoteV4Generator::buildSgxQuote()
 {
 	return header.bytes() + enclaveReport.bytes() + quoteAuthData.bytes();
 }
 
-Bytes QuoteGenerator::QuoteHeader::bytes() const
+Bytes QuoteV4Generator::buildTdxQuote()
+{
+    return header.bytes() + tdReport.bytes() + quoteAuthData.bytes();
+}
+
+Bytes QuoteV4Generator::QuoteHeader::bytes() const
 {
     return
             convertToBytes(version) +
             convertToBytes(attestationKeyType) +
             convertToBytes(teeType) +
             convertToBytes(reserved) +
-            convertToBytes(qeSvn) +
-            convertToBytes(pceSvn) +
             convertToBytes(qeVendorId) +
             convertToBytes(userData);
 }
 
-Bytes QuoteGenerator::EnclaveReport::bytes() const
+Bytes QuoteV4Generator::EnclaveReport::bytes() const
 {
     return
         convertToBytes(cpuSvn) +
@@ -288,34 +259,60 @@ Bytes QuoteGenerator::EnclaveReport::bytes() const
         convertToBytes(reportData);
 }
 
-Bytes QuoteGenerator::QuoteAuthData::bytes() const
+Bytes QuoteV4Generator::TDReport::bytes() const
+{
+    return
+        convertToBytes(teeTcbSvn) +
+        convertToBytes(mrSeam) +
+        convertToBytes(mrSignerSeam) +
+        convertToBytes(seamAttributes) +
+        convertToBytes(tdAttributes) +
+        convertToBytes(xFAM) +
+        convertToBytes(mrTd) +
+        convertToBytes(mrConfigId) +
+        convertToBytes(mrOwner) +
+        convertToBytes(mrOwnerConfig) +
+        convertToBytes(rtMr0) +
+        convertToBytes(rtMr1) +
+        convertToBytes(rtMr2) +
+        convertToBytes(rtMr3) +
+        convertToBytes(reportData);
+}
+
+Bytes QuoteV4Generator::QuoteAuthData::bytes() const
 {
     return
         convertToBytes(authDataSize) +
         ecdsaSignature.bytes() +
         ecdsaAttestationKey.bytes() +
+        certificationData.bytes();
+}
+
+Bytes QuoteV4Generator::QEReportCertificationData::bytes() const
+{
+    return
         qeReport.bytes() +
         qeReportSignature.bytes() +
         qeAuthData.bytes() +
-        qeCertData.bytes();
+        certificationData.bytes();
 }
 
-Bytes QuoteGenerator::EcdsaSignature::bytes() const
+Bytes QuoteV4Generator::EcdsaSignature::bytes() const
 {
     return convertToBytes(signature);
 }
 
-Bytes QuoteGenerator::EcdsaPublicKey::bytes() const
+Bytes QuoteV4Generator::EcdsaPublicKey::bytes() const
 {
     return convertToBytes(publicKey);
 }
 
-Bytes QuoteGenerator::QeAuthData::bytes() const
+Bytes QuoteV4Generator::QeAuthData::bytes() const
 {
     return convertToBytes(size) + data;
 }
 
-Bytes QuoteGenerator::QeCertData::bytes() const
+Bytes QuoteV4Generator::CertificationData::bytes() const
 {
     return convertToBytes(keyDataType) + convertToBytes(size) + keyData;
 }

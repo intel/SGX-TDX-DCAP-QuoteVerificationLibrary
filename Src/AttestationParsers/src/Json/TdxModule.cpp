@@ -29,62 +29,50 @@
  *
  */
 
-#include "EnclaveIdentityV1.h"
-#include "CertVerification/X509Constants.h"
-#include "Utils/TimeUtils.h"
-
-#include <rapidjson/writer.h>
-#include <rapidjson/stringbuffer.h>
-
+#include "SgxEcdsaAttestation/AttestationParsers.h"
+#include "JsonParser.h"
 #include <tuple>
 
-namespace intel { namespace sgx { namespace dcap {
+namespace intel { namespace sgx { namespace dcap { namespace parser { namespace json {
+    const std::vector<uint8_t> &TdxModule::getAttributes() const {
+        return _attributes;
+    }
 
-    EnclaveIdentityV1::EnclaveIdentityV1(const ::rapidjson::Value &p_body) : isvSvn(0)
-    {
-        if(!p_body.IsObject())
+    const std::vector<uint8_t> &TdxModule::getAttributesMask() const {
+        return _attributesMask;
+    }
+
+    const std::vector<uint8_t> &TdxModule::getMrSigner() const {
+        return _mrsigner;
+    }
+
+    TdxModule::TdxModule(const ::rapidjson::Value& tdxModule) {
+        if (!tdxModule.IsObject())
         {
-            status = STATUS_SGX_ENCLAVE_IDENTITY_UNSUPPORTED_FORMAT;
-            return;
+            throw FormatException("TDX Module should be an object");
+        }
+        JsonParser jsonParser;
+
+        auto status = JsonParser::Missing;
+        std::tie(_mrsigner, status) = jsonParser.getBytesFieldOf(tdxModule, "mrsigner", 96);
+
+        if (status != JsonParser::OK)
+        {
+            throw FormatException("TDX Module JSON should have [mrsigner] field and it should be 48 bytes encoded as hexstring");
         }
 
-        /// 4.1.2.9.3
-        if(!parseVersion(p_body)
-           || !parseIssueDate(p_body) || !parseNextUpdate(p_body)
-           || !parseMiscselect(p_body) || !parseMiscselectMask(p_body)
-           || !parseAttributes(p_body) || !parseAttributesMask(p_body)
-           || !parseMrsigner(p_body) || !parseIsvprodid(p_body)
-           || !parseIsvsvn(p_body))
+        std::tie(_attributes, status) = jsonParser.getBytesFieldOf(tdxModule, "attributes", 16);
+
+        if (status != JsonParser::OK)
         {
-            status = STATUS_SGX_ENCLAVE_IDENTITY_INVALID;
-            return;
+            throw FormatException("TDX Module JSON should have [attributes] field and it should be 8 bytes encoded as hexstring");
         }
 
-        rapidjson::StringBuffer buffer;
-        rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-        p_body.Accept(writer);
+        std::tie(_attributesMask, status) = jsonParser.getBytesFieldOf(tdxModule, "attributesMask", 16);
 
-        body = std::vector<uint8_t>{buffer.GetString(), &buffer.GetString()[buffer.GetSize()]};
-        status = STATUS_OK;
-    }
-
-    unsigned int EnclaveIdentityV1::getIsvSvn() const
-    {
-        return isvSvn;
-    }
-
-    bool EnclaveIdentityV1::parseIsvsvn(const rapidjson::Value &input)
-    {
-        return parseUintProperty(input, "isvsvn", isvSvn);
-    }
-
-    TcbStatus EnclaveIdentityV1::getTcbStatus(unsigned int p_isvSvn) const
-    {
-        if (this->isvSvn <= p_isvSvn)
+        if (status != JsonParser::OK)
         {
-            return TcbStatus::UpToDate;
+            throw FormatException("TDX Module JSON should have [attributesMask] field and it should be 8 bytes encoded as hexstring");
         }
-        return TcbStatus::OutOfDate;
     }
-
-}}}
+}}}}}

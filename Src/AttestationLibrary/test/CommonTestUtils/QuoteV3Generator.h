@@ -29,8 +29,8 @@
  *
  */
 
-#ifndef SGXECDSAATTESTATION_TEST_QUOTEGENERATOR_H_
-#define SGXECDSAATTESTATION_TEST_QUOTEGENERATOR_H_
+#ifndef SGXECDSAATTESTATION_TEST_QUOTEV3_GENERATOR_H_
+#define SGXECDSAATTESTATION_TEST_QUOTEV3_GENERATOR_H_
 
 #include <cstdint>
 #include <array>
@@ -39,45 +39,12 @@
 
 namespace intel { namespace sgx { namespace dcap { namespace test {
 
-static constexpr size_t QUOTE_HEADER_SIZE = 48;
-static constexpr size_t ENCLAVE_REPORT_SIGNATURE_SIZE = 64;
-static constexpr size_t ECDSA_PUBLIC_KEY_SIZE = 64;
-static constexpr size_t ENCLAVE_REPORT_SIZE = 384;
-static constexpr size_t BODY_SIZE = ENCLAVE_REPORT_SIZE;
-
-static constexpr size_t QE_CERT_DATA_MIN_SIZE = 6;
-static constexpr size_t QE_AUTH_DATA_MIN_SIZE = 2;
-static constexpr size_t QE_AUTH_SIZE_BYTE_LEN = 2;
-static constexpr size_t QUOTE_AUTH_DATA_SIZE_FIELD_SIZE = 4;
-static constexpr size_t QUOTE_AUTH_DATA_MIN_SIZE =  
-    ENCLAVE_REPORT_SIGNATURE_SIZE + // quote signature
-    ECDSA_PUBLIC_KEY_SIZE +
-    ENCLAVE_REPORT_SIZE + //qeReport
-    ENCLAVE_REPORT_SIGNATURE_SIZE + //qeReportSignate
-    QE_AUTH_DATA_MIN_SIZE +
-    QE_CERT_DATA_MIN_SIZE;
-
-static constexpr size_t QUOTE_MINIMAL_SIZE = 
-    QUOTE_HEADER_SIZE +
-    ENCLAVE_REPORT_SIZE +
-    QUOTE_AUTH_DATA_SIZE_FIELD_SIZE +
-    QUOTE_AUTH_DATA_MIN_SIZE;
-
-template<class DataType>
-Bytes toBytes(DataType& data)
-{
-    Bytes retVal;
-    auto bytes = reinterpret_cast<uint8_t*>(const_cast<typename std::remove_cv<DataType>::type*>(&data));
-    retVal.insert(retVal.end(), bytes, bytes + sizeof(DataType));
-    return retVal;
-}
-
-class QuoteGenerator {
+class QuoteV3Generator {
 public:
 
     struct QuoteHeader
     {
-        uint16_t version;
+        uint16_t version = 3;
         uint16_t attestationKeyType;
         uint16_t teeType;
         uint16_t reserved;
@@ -127,7 +94,7 @@ public:
         Bytes bytes() const;
     };
 
-    struct QeCertData
+    struct CertificationData
     {
         uint16_t keyDataType;
         uint32_t size;
@@ -147,41 +114,42 @@ public:
         EcdsaSignature qeReportSignature;
 
         QeAuthData qeAuthData;
-        QeCertData qeCertData;
+        CertificationData certificationData;
 
         Bytes bytes() const;
     };
 
 
-    QuoteGenerator();
+    QuoteV3Generator();
  
-    QuoteGenerator& withHeader(const QuoteHeader& header);
-    QuoteGenerator& withEnclaveReport(const EnclaveReport& _body);
-    QuoteGenerator& withAuthDataSize(uint32_t size);
-    QuoteGenerator& withAuthData(const QuoteAuthData& authData);
+    QuoteV3Generator& withHeader(const QuoteHeader& header);
+    QuoteV3Generator& withEnclaveReport(const EnclaveReport& _body);
+    QuoteV3Generator& withAuthDataSize(uint32_t size);
+    QuoteV3Generator& withAuthData(const QuoteAuthData& authData);
 
     QuoteHeader& getHeader() {return header;}
     EnclaveReport& getEnclaveReport() {return enclaveReport;}
     uint32_t& getAuthSize() {return quoteAuthData.authDataSize;}
-    QuoteAuthData& getQuoteAuthData() {return quoteAuthData;}
+    QuoteAuthData& getAuthData() {return quoteAuthData;}
 
 
     // header utils   
-    QuoteGenerator& withQeSvn(uint16_t qeSvn);
-    QuoteGenerator& withPceSvn(uint16_t pceSvn);
+    QuoteV3Generator& withQeSvn(uint16_t qeSvn);
+    QuoteV3Generator& withPceSvn(uint16_t pceSvn);
 
     // auth data utils  
-    QuoteGenerator& withQuoteSignature(const EcdsaSignature& signature);
-    QuoteGenerator& withAttestationKey(const EcdsaPublicKey& pubKey);
-    QuoteGenerator& withQeReport(const EnclaveReport& report);
-    QuoteGenerator& withQeReportSignature(const EcdsaSignature& sign);
+    QuoteV3Generator& withQuoteSignature(const EcdsaSignature& signature);
+    QuoteV3Generator& withAttestationKey(const EcdsaPublicKey& pubKey);
+    QuoteV3Generator& withQeReport(const EnclaveReport& report);
+    QuoteV3Generator& withQeReportSignature(const EcdsaSignature& sign);
 
-    QuoteGenerator& withQeAuthData(const QuoteGenerator::QeAuthData& qeAuth);
-    QuoteGenerator& withQeAuthData(const Bytes& report);
-    QuoteGenerator& withQeCertData(const QeCertData& qeCertData);
-    QuoteGenerator& withQeCertData(uint16_t type, const Bytes& keyData);
+    QuoteV3Generator& withQeAuthData(const QuoteV3Generator::QeAuthData& qeAuth);
+    QuoteV3Generator& withQeAuthData(const Bytes& report);
+    QuoteV3Generator& withcertificationData(const CertificationData& certificationData);
+    QuoteV3Generator& withCertificationData(uint16_t type, const Bytes& keyData);
 
-    Bytes buildSgxQuote();
+    Bytes buildQuote();
+    Bytes buildTdxQuote();
 
 private:  
     QuoteHeader header;
@@ -192,4 +160,4 @@ private:
 }}}} // namespace intel { namespace sgx { namespace dcap { namespace test {
 
 
-#endif //SGXECDSAATTESTATION_QUOTEGENERATOR_H
+#endif //SGXECDSAATTESTATION_TEST_QUOTEV3_GENERATOR_H_

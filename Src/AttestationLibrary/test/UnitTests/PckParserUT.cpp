@@ -29,38 +29,70 @@
  *
  */
 
-#ifndef SGXECDSAATTESTATION_ENCLAVEIDENTITYV1_H
-#define SGXECDSAATTESTATION_ENCLAVEIDENTITYV1_H
+#include <gtest/gtest.h>
+#include <PckParser/PckParser.h>
 
-#include "EnclaveIdentity.h"
-#include "OpensslHelpers/Bytes.h"
-#include "Utils/JsonParser.h"
-#include "TcbStatus.h"
+using namespace testing;
+using namespace intel::sgx::dcap::pckparser;
 
-#include <SgxEcdsaAttestation/QuoteVerification.h>
+time_t toTimestamp(const std::string& timeString)
+{
+    struct std::tm tm{};
+    std::istringstream(timeString) >> std::get_time(&tm, "%Y-%m-%d %H:%M:%S");
+    return mktime(&tm);
+}
 
-#include <rapidjson/document.h>
-
-#include <string>
-#include <vector>
-#include <cstdint>
-
-namespace intel { namespace sgx { namespace dcap {
-
-    class EnclaveIdentityV1: virtual public EnclaveIdentity
-    {
-    public:
-        explicit EnclaveIdentityV1(const ::rapidjson::Value &p_body);
-
-        virtual bool parseIsvsvn(const rapidjson::Value &input);
-        virtual unsigned int getIsvSvn() const;
-        virtual TcbStatus getTcbStatus(unsigned int isvSvn) const;
-
-    protected:
-        EnclaveIdentityV1() = default;
-
-        unsigned int isvSvn;
+struct PckParserUT : public Test
+{
+    Validity validity = {
+            toTimestamp("2022-01-14 06:00:00"),
+            toTimestamp("2022-05-14 06:00:00"),
     };
-}}}
+};
 
-#endif //SGXECDSAATTESTATION_ENCLAVEIDENTITYV1_H
+
+TEST_F(PckParserUT, validityIsValidTrueWhenDateInsidePeriod)
+{
+    auto result = validity.isValid(toTimestamp("2022-04-14 05:00:00"));
+
+    EXPECT_TRUE(result);
+}
+
+TEST_F(PckParserUT, validityIsValidTrueWhenDateAtEnd)
+{
+    auto result = validity.isValid(toTimestamp("2022-05-14 06:00:00"));
+
+    EXPECT_TRUE(result);
+}
+
+TEST_F(PckParserUT, validityIsValidTrueWhenDateAtBeginning)
+{
+    auto result = validity.isValid(toTimestamp("2022-01-14 06:00:00"));
+
+    EXPECT_TRUE(result);
+}
+
+TEST_F(PckParserUT, validityIsValidFalseWhenDateAfter)
+{
+    auto result = validity.isValid(toTimestamp("2022-10-14 05:00:00"));
+
+    EXPECT_FALSE(result);
+}
+
+TEST_F(PckParserUT, validityIsValidFalseWhenDateBefore)
+{
+    auto result = validity.isValid(toTimestamp("2021-10-14 05:00:00"));
+
+    EXPECT_FALSE(result);
+}
+
+TEST_F(PckParserUT, validityIsValidFalseWhenValidityInversed)
+{
+    Validity validityInversed = {
+            toTimestamp("2022-05-14 06:00:00"),
+            toTimestamp("2022-01-14 06:00:00"),
+    };
+    auto result = validityInversed.isValid(toTimestamp("2022-04-14 05:00:00"));
+
+    EXPECT_FALSE(result);
+}
