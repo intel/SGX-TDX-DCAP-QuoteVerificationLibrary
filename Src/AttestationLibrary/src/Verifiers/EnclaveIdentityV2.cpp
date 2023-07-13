@@ -34,6 +34,8 @@
 #include "Utils/TimeUtils.h"
 #include "QuoteVerification/QuoteConstants.h"
 #include "Utils/Logger.h"
+#include "Utils/StatusNotSupportedException.h"
+
 
 #include <rapidjson/writer.h>
 #include <rapidjson/stringbuffer.h>
@@ -330,7 +332,7 @@ namespace intel { namespace sgx { namespace dcap {
                 return tcbLevel.getTcbStatus();
             }
         }
-        return TcbStatus::Revoked;
+        LOG_AND_THROW(StatusNotSupportedException, "Non-existent tcb status exception");
     }
 
     uint32_t EnclaveIdentityV2::getTcbEvaluationDataNumber() const

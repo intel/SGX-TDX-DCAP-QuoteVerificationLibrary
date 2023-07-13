@@ -290,8 +290,11 @@ Status convergeTcbStatusWithQeTcbStatus(Status tcbLevelStatus, Status qeTcbStatu
         LOG_INFO("QE TCB status is \"Revoked\"");
         return STATUS_TCB_REVOKED;
     }
-
-    switch (tcbLevelStatus)
+    else if (qeTcbStatus == STATUS_SGX_ENCLAVE_REPORT_ISVSVN_NOT_SUPPORTED)
+    {
+        return STATUS_TCB_NOT_SUPPORTED;
+    }
+        switch (tcbLevelStatus)
     {
         case STATUS_TCB_OUT_OF_DATE:
         case STATUS_TCB_REVOKED:
@@ -299,6 +302,7 @@ Status convergeTcbStatusWithQeTcbStatus(Status tcbLevelStatus, Status qeTcbStatu
         case STATUS_TCB_OUT_OF_DATE_CONFIGURATION_NEEDED:
         case STATUS_TCB_SW_HARDENING_NEEDED:
         case STATUS_TCB_CONFIGURATION_AND_SW_HARDENING_NEEDED:
+        case STATUS_TCB_NOT_SUPPORTED:
         case STATUS_OK:
             return tcbLevelStatus;
         default:

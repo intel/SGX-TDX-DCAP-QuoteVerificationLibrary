@@ -513,6 +513,15 @@ TEST_F(QuoteV3VerifierUT, shouldReturnSwHardeningNeeded)
     EXPECT_EQ(STATUS_TCB_SW_HARDENING_NEEDED , dcap::QuoteVerifier{}.verify(quote, pck, crl, tcbInfoJson, &enclaveIdentityV2, enclaveReportVerifier));
 }
 
+TEST_F(QuoteV3VerifierUT, shouldReturnStatusNotSupportedWhenEnclaveReportVeriferIsIsvsvnNotSupported)
+{
+    const auto quoteBin = gen.buildQuote();
+    EXPECT_CALL(enclaveReportVerifier, verify(_, _)).WillOnce(Return(STATUS_SGX_ENCLAVE_REPORT_ISVSVN_NOT_SUPPORTED));
+    dcap::Quote quote;
+    ASSERT_TRUE(quote.parse(quoteBin));
+    EXPECT_EQ(STATUS_TCB_NOT_SUPPORTED, dcap::QuoteVerifier{}.verify(quote, pck, crl, tcbInfoJson, &enclaveIdentityV2, enclaveReportVerifier));
+}
+
 struct QeIdentityStatuses {
     Status enclaveVerifierStatus;
     Status expectedStatus;

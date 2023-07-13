@@ -234,7 +234,7 @@ TEST_F(EnclaveReportVerifierUT, shouldReturnEnclaveReportIsvprodidMismatchWhenIs
     ASSERT_EQ(STATUS_SGX_ENCLAVE_REPORT_ISVPRODID_MISMATCH, result);
 }
 
-TEST_F(EnclaveReportVerifierUT, shouldReturnEnclaveReportRevokedWhenIsvsvnIsBelowAllLevels)
+TEST_F(EnclaveReportVerifierUT, shouldReturnEnclaveReportNotSupportedWhenIsvsvnIsBelowAllLevels)
 {
     EnclaveIdentityVectorModel model;
     model.applyTo(enclaveReport);
@@ -245,7 +245,7 @@ TEST_F(EnclaveReportVerifierUT, shouldReturnEnclaveReportRevokedWhenIsvsvnIsBelo
 
     auto result = enclaveReportVerifier.verify(enclaveIdentity.get(), getEnclaveReport());
 
-    ASSERT_EQ(STATUS_SGX_ENCLAVE_REPORT_ISVSVN_REVOKED, result);
+    ASSERT_EQ(STATUS_SGX_ENCLAVE_REPORT_ISVSVN_NOT_SUPPORTED, result);
 }
 
 TEST_F(EnclaveReportVerifierUT, shouldReturnEnclaveReportRevokedWhenIsvsvnIsOnRevokedLevel)
@@ -289,7 +289,35 @@ TEST_F(EnclaveReportVerifierUT, shouldReturnStatusOkWhenJsonIsOk)
     ASSERT_EQ(STATUS_OK, result);
 }
 
-TEST_F(EnclaveReportVerifierUT, shouldReturnOutOfDateWhenIsvsvnIsOutOfDate)
+TEST_F(EnclaveReportVerifierUT, shouldReturnEnclaveReportNotSupportedWhenIsvSvnisOneAndEnclaveIdentityHavingTcbsBelowFive)
 {
+    EnclaveIdentityVectorModel modelISVSVN2;
+    EnclaveIdentityVectorModel modelISVSVN3;
+    EnclaveIdentityVectorModel modelISVSVN4;
 
+    modelISVSVN2.tcbLevels.push_back({2, "2018-08-22T12:00:00Z", "Revoked"});
+    modelISVSVN3.tcbLevels.push_back({3, "2018-08-22T12:00:00Z", "Revoked"});
+    modelISVSVN4.tcbLevels.push_back({4, "2018-08-22T12:00:00Z", "Revoked"});
+
+    modelISVSVN2.applyTo(enclaveReport);
+    enclaveReport.isvSvn = 1;
+    string json = modelISVSVN2.toV2JSON();
+    auto enclaveIdentityISVSVN2 = parser.parse(generateEnclaveIdentity(json));
+    auto resultISVSVN2 = enclaveReportVerifier.verify(enclaveIdentityISVSVN2.get(), getEnclaveReport());
+
+    modelISVSVN3.applyTo(enclaveReport);
+    enclaveReport.isvSvn = 1;
+    json = modelISVSVN3.toV2JSON();
+    auto enclaveIdentityISVSVN3 = parser.parse(generateEnclaveIdentity(json));
+    auto resultISVSVN3 = enclaveReportVerifier.verify(enclaveIdentityISVSVN3.get(), getEnclaveReport());
+
+    modelISVSVN4.applyTo(enclaveReport);
+    enclaveReport.isvSvn = 1;
+    json = modelISVSVN4.toV2JSON();
+    auto enclaveIdentityISVSVN4 = parser.parse(generateEnclaveIdentity(json));
+    auto resultISVSVN4 = enclaveReportVerifier.verify(enclaveIdentityISVSVN4.get(), getEnclaveReport());
+
+    ASSERT_EQ(STATUS_SGX_ENCLAVE_REPORT_ISVSVN_NOT_SUPPORTED, resultISVSVN2);
+    ASSERT_EQ(STATUS_SGX_ENCLAVE_REPORT_ISVSVN_NOT_SUPPORTED, resultISVSVN3);
+    ASSERT_EQ(STATUS_SGX_ENCLAVE_REPORT_ISVSVN_NOT_SUPPORTED, resultISVSVN4);
 }

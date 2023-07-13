@@ -33,6 +33,7 @@
 #include "QuoteVerification/ByteOperands.h"
 #include "EnclaveIdentityV2.h"
 #include "EnclaveIdentityV2.h"
+#include "Utils/StatusNotSupportedException.h"
 #include <algorithm>
 #include <functional>
 #include <numeric>
@@ -86,18 +87,25 @@ Status EnclaveReportVerifier::verify(const EnclaveIdentityV2 *enclaveIdentity, c
     }
 
     /// 4.1.2.9.9 & 4.1.2.9.10
-    auto enclaveIdentityStatus = enclaveIdentity->getTcbStatus(enclaveReport.isvSvn);
-    if(enclaveIdentityStatus != TcbStatus::UpToDate)
+    try
     {
-        if (enclaveIdentityStatus == TcbStatus::Revoked)
+        auto enclaveIdentityStatus = enclaveIdentity->getTcbStatus(enclaveReport.isvSvn);
+        if (enclaveIdentityStatus != TcbStatus::UpToDate)
         {
-            LOG_ERROR("Value of tcbStatus for the selected Enclave's Identity tcbLevel (isvSvn: {}) is \"Revoked\"",
+            if (enclaveIdentityStatus == TcbStatus::Revoked)
+            {
+                LOG_ERROR("Value of tcbStatus for the selected Enclave's Identity tcbLevel (isvSvn: {}) is \"Revoked\"",
+                          enclaveReport.isvSvn);
+                return STATUS_SGX_ENCLAVE_REPORT_ISVSVN_REVOKED;
+            }
+            LOG_ERROR("Value of tcbStatus for the selected Enclave's Identity tcbLevel (isvSvn: {}) is \"OutOfDate\"",
                       enclaveReport.isvSvn);
-            return STATUS_SGX_ENCLAVE_REPORT_ISVSVN_REVOKED;
+            return STATUS_SGX_ENCLAVE_REPORT_ISVSVN_OUT_OF_DATE;
         }
-        LOG_ERROR("Value of tcbStatus for the selected Enclave's Identity tcbLevel (isvSvn: {}) is \"OutOfDate\"",
-                  enclaveReport.isvSvn);
-        return STATUS_SGX_ENCLAVE_REPORT_ISVSVN_OUT_OF_DATE;
+    }
+    catch (const StatusNotSupportedException &e)
+    {
+        return STATUS_SGX_ENCLAVE_REPORT_ISVSVN_NOT_SUPPORTED;
     }
 
     /// 4.1.2.9.11

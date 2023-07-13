@@ -40,6 +40,7 @@
 #include <QuoteV3Generator.h>
 #include <QuoteVerification/Quote.h>
 #include <EnclaveIdentityGenerator.h>
+#include "Utils/StatusNotSupportedException.h"
 
 using namespace testing;
 using namespace ::intel::sgx::dcap;
@@ -303,8 +304,19 @@ TEST_F(EnclaveIdentityParserUT, positiveQE)
         EXPECT_EQ(jsonObject->getTcbStatus(6), TcbStatus::ConfigurationNeeded);
         EXPECT_EQ(jsonObject->getTcbStatus(5), TcbStatus::OutOfDateConfigurationNeeded);
         EXPECT_EQ(jsonObject->getTcbStatus(4), TcbStatus::Revoked);
-        EXPECT_EQ(jsonObject->getTcbStatus(3), TcbStatus::Revoked);
+        EXPECT_THROW({
+                        try
+                        {
+                            jsonObject->getTcbStatus(3);
+                        }
+                        catch (const StatusNotSupportedException  &e)
+                        {
+                            EXPECT_STREQ(e.what(), "Non-existent tcb status exception");
+                            throw;
+                        }
+                     },StatusNotSupportedException);
     }
+
     catch(const ParserException &ex)
     {
         FAIL() << "Unexpected status: " << ex.getStatus();
@@ -379,8 +391,18 @@ TEST_F(EnclaveIdentityParserUT, positiveQVE)
         EXPECT_EQ(jsonObject->getTcbStatus(6), TcbStatus::ConfigurationNeeded);
         EXPECT_EQ(jsonObject->getTcbStatus(5), TcbStatus::OutOfDateConfigurationNeeded);
         EXPECT_EQ(jsonObject->getTcbStatus(4), TcbStatus::Revoked);
-        EXPECT_EQ(jsonObject->getTcbStatus(3), TcbStatus::Revoked);
-    }
+        EXPECT_THROW({
+                         try
+                         {
+                             jsonObject->getTcbStatus(3);
+                         }
+                         catch (const StatusNotSupportedException  &e)
+                         {
+                             EXPECT_STREQ(e.what(), "Non-existent tcb status exception");
+                             throw;
+                         }
+                     },StatusNotSupportedException);
+}
     catch(const ParserException &ex)
     {
         FAIL() << "Unexpected status: " << ex.getStatus();
@@ -455,7 +477,17 @@ TEST_F(EnclaveIdentityParserUT, positiveTD_QE)
         EXPECT_EQ(jsonObject->getTcbStatus(6), TcbStatus::ConfigurationNeeded);
         EXPECT_EQ(jsonObject->getTcbStatus(5), TcbStatus::OutOfDateConfigurationNeeded);
         EXPECT_EQ(jsonObject->getTcbStatus(4), TcbStatus::Revoked);
-        EXPECT_EQ(jsonObject->getTcbStatus(3), TcbStatus::Revoked);
+        EXPECT_THROW({
+                         try
+                         {
+                             jsonObject->getTcbStatus(3);
+                         }
+                         catch (const StatusNotSupportedException  &e)
+                         {
+                             EXPECT_STREQ(e.what(), "Non-existent tcb status exception");
+                             throw;
+                         }
+                     },StatusNotSupportedException);
     }
     catch(const ParserException &ex)
     {
