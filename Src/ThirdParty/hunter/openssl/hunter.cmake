@@ -14,11 +14,11 @@ hunter_add_version(
     PACKAGE_NAME
     OpenSSL
     VERSION
-    "3.0.9"
+    "3.0.10"
     URL
-    "https://github.com/openssl/openssl/archive/openssl-3.0.9.tar.gz"
+    "https://github.com/openssl/openssl/releases/download/openssl-3.0.10/openssl-3.0.10.tar.gz"
     SHA1
-    6c1c60a1fb5fd73bd2f44d8562f78ef3b09b2e1c
+    f6ce69840df105fd4b9450f76075068e236d620f
 )
 
 if(MINGW)
