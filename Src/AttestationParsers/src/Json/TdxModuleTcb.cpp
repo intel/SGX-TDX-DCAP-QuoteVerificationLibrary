@@ -29,38 +29,38 @@
  *
  */
 
-#ifndef SGXECDSAATTESTATION_TCBINFO_JSON_VERIFIER_MOCK_H_
-#define SGXECDSAATTESTATION_TCBINFO_JSON_VERIFIER_MOCK_H_
+#include "SgxEcdsaAttestation/AttestationParsers.h"
+#include "JsonParser.h"
+#include "Utils/Logger.h"
 
-#include <gmock/gmock.h>
+#include <tuple>
 
-#include <SgxEcdsaAttestation/AttestationParsers.h>
+namespace intel { namespace sgx { namespace dcap { namespace parser { namespace json {
 
-#include <string>
-#include <vector>
+TdxModuleTcb::TdxModuleTcb(uint16_t isvSvn) : _isvsvn(isvSvn)
+{}
 
-
-namespace intel { namespace sgx { namespace dcap { namespace test {
-
-
-class TcbInfoMock: public dcap::parser::json::TcbInfo
+TdxModuleTcb::TdxModuleTcb(const ::rapidjson::Value& tdxModuleTcb)
 {
-public:
-    MOCK_METHOD1(parse, Status(const std::string&));
+    JsonParser jsonParser;
+    auto status = JsonParser::Missing;
+    int32_t isvsvn;
+    std::tie(isvsvn, status) = jsonParser.getIntFieldOf(tdxModuleTcb, "isvsvn");
+    if (status != JsonParser::OK)
+    {
+        LOG_AND_THROW(FormatException, "TDX Module TCB JSON's [isvsvn] field should be an unsigned integer");
+    }
+    if (isvsvn < 0 || isvsvn > UINT16_MAX)
+    {
+        const std::string err = "TDX Module TCB JSON's [isvsvn] field value should be within 0 and " + std::to_string(UINT16_MAX);
+        LOG_AND_THROW(FormatException, err);
+    }
+    _isvsvn = (uint16_t) isvsvn;
+}
 
-    MOCK_CONST_METHOD0(getInfoBody, const std::vector<uint8_t>&());
-    MOCK_CONST_METHOD0(getSignature, const std::vector<uint8_t>&());
-    MOCK_CONST_METHOD0(getFmspc, const std::vector<uint8_t>&());
-    MOCK_CONST_METHOD0(getPceId, const std::vector<uint8_t>&());
-    MOCK_CONST_METHOD0(getId, std::string());
-    MOCK_CONST_METHOD0(getVersion, uint32_t());
-    MOCK_CONST_METHOD0(getTcbLevels, const std::set<dcap::parser::json::TcbLevel, std::greater<dcap::parser::json::TcbLevel>>&());
-    MOCK_CONST_METHOD0(getNextUpdate, time_t());
-    MOCK_CONST_METHOD0(getTdxModule, const dcap::parser::json::TdxModule&());
-    MOCK_CONST_METHOD0(getTdxModuleIdentities, const std::vector<dcap::parser::json::TdxModuleIdentity>&());
-};
+uint16_t TdxModuleTcb::getIsvSvn() const
+{
+    return _isvsvn;
+}
 
-
-}}}}
-
-#endif
+}}}}} // namespace intel { namespace sgx { namespace dcap { namespace parser { namespace json {
