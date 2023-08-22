@@ -30,6 +30,8 @@
  */
 
 #include "AppCore.h"
+
+#include <utility>
 #include "AppOptions.h"
 #include "IAttestationLibraryAdapter.h"
 #include "StatusPrinter.h"
@@ -67,7 +69,7 @@ void outputResult(const std::string& step, Status status, std::ostream& logger)
 }
 
 AppCore::AppCore(std::shared_ptr<IAttestationLibraryAdapter> libAdapter, std::shared_ptr<IFileReader> reader)
-    : attestationLib(libAdapter), fileReader(reader)
+    : attestationLib(std::move(libAdapter)), fileReader(std::move(reader))
 {
 }
 

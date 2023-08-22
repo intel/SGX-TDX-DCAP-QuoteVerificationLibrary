@@ -178,7 +178,7 @@ Signature getSignature(const ASN1_BIT_STRING* psig)
     ECDSA_SIG_get0(sig.get(), &r, &s);
 
     return Signature{
-        rawDerSequence,
+        std::move(rawDerSequence),
         bn2Vec(r),
         bn2Vec(s)
     };
@@ -331,7 +331,7 @@ Extension getExtension(X509_EXTENSION* ex)
         return Extension {
             nid,
             extName,
-            data
+            std::move(data)
         };
     }
 
@@ -349,7 +349,7 @@ Extension getExtension(X509_EXTENSION* ex)
         return Extension{
             nid,
             std::string(OBJ_nid2ln(nid)),
-            data
+            std::move(data)
         };
     }
 
@@ -364,7 +364,7 @@ Extension getExtension(X509_EXTENSION* ex)
     return Extension{
         nid,
         std::string(OBJ_nid2ln(nid)),
-        data
+        std::move(data)
     };
 }
 
@@ -403,7 +403,7 @@ Revoked getRevoked(const STACK_OF(X509_REVOKED)* revokedStack, int index)
 
     return Revoked{
         asn1ToString(time),
-        retSerial
+        std::move(retSerial)
     };
 }
 

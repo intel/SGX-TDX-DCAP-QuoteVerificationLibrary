@@ -274,7 +274,7 @@ void Certificate::setExtensions(const X509 *x509)
         LOG_AND_THROW(InvalidExtensionException, err);
     }
 
-    _extensions = extensions;
+    _extensions = std::move(extensions);
 }
 
 void Certificate::setSignature(const X509 *x509)

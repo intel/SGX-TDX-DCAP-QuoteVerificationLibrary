@@ -342,7 +342,7 @@ namespace enclave
     bool isValidTimeString(const std::string& timeString)
     {
 
-        struct tm tmp;
+        struct tm tmp{};
         if (enclave::qvlStringToTime(timeString.c_str(), timeString.length(), &tmp) != -1)
         {
             return true;

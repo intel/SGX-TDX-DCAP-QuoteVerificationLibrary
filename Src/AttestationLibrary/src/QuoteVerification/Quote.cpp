@@ -191,8 +191,8 @@ bool Quote::parse(const std::vector<uint8_t>& rawQuote)
     tdReport10 = localTdReport10;
     tdReport15 = localTdReport15;
     authDataSize = localAuthDataSize;
-    authDataV3 = localQuoteV3Auth;
-    authDataV4 = localQuoteV4Auth;
+    authDataV3 = std::move(localQuoteV3Auth);
+    authDataV4 = std::move(localQuoteV4Auth);
 
     return true;
 }
