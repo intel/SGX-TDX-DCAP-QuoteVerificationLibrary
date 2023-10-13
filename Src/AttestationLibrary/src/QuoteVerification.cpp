@@ -33,6 +33,7 @@
 #include <string>
 #include <memory>
 #include <algorithm>
+#include <openssl/provider.h>
 
 #include "PckParser/CrlStore.h"
 #include "CertVerification/CertificateChain.h"
@@ -65,18 +66,25 @@ using namespace intel::sgx;
 
 const char* sgxAttestationGetVersion()
 {
-    return VERSION;
+    const auto fipsProviderName = std::string("fips");
+    static char ver[32];
+    snprintf(ver, sizeof(ver), "%s", VERSION);
+    if (OSSL_PROVIDER_available(nullptr, fipsProviderName.c_str())) {
+        snprintf(ver + strlen(ver), sizeof(ver) - strlen(ver), "+%s", fipsProviderName.c_str());
+    }
+    return ver;
 }
 
 void sgxEnclaveAttestationGetVersion(char *version, size_t len)
 {
-    size_t strln = 1 + strlen(VERSION);
+    auto ver = std::string(sgxAttestationGetVersion());
+    size_t strln = ver.length();
     if (strln > len)
     {
-        safeMemcpy(version, VERSION, len);
+        safeMemcpy(version, ver.c_str(), len);
         return;
     }
-    safeMemcpy(version, VERSION, strln);
+    safeMemcpy(version, ver.c_str(), strln);
 }
 
 Status sgxAttestationVerifyPCKCertificate(const char *pemCertChain, const char * const crls[], const char *pemRootCaCertificate, const time_t* expirationDate)
