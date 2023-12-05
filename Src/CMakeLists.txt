@@ -25,6 +25,8 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 cmake_minimum_required(VERSION 3.12)
 
+set(CMAKE_POLICY_DEFAULT_CMP0144 NEW)
+
 set(ATTESTATION_PARSERS_ROOT_DIR "") # Optional path to Attestation Parsers library
 set(ATTESTATION_LIBRARY_ROOT_DIR "") # Optional path to Attestation library
 option(BUILD_ATTESTATION_APP "Build AttestationApp" ON)
@@ -146,13 +148,12 @@ set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 #hunter has to be imported before 'project()'
 set(HUNTER_STATUS_DEBUG OFF) #set to 'ON' to see debug hunter logs
 if(CMAKE_HOST_WIN32)
-    set(HUNTER_ROOT "$ENV{USERPROFILE}/.cache/hunter")
+    set(HUNTER_ROOT "$ENV{USERPROFILE}/.cache/hunter" CACHE STRING "hunter root" FORCE)
     string(REPLACE "\\" "/" HUNTER_ROOT ${HUNTER_ROOT})
 else()
-    set(HUNTER_ROOT "$ENV{HOME}/.cache/hunter")
+    set(HUNTER_ROOT "$ENV{HOME}/.cache/hunter" CACHE STRING "hunter root" FORCE)
 endif()
 set(HUNTER_BINARY_DIR "${HUNTER_ROOT}")
-#set(HUNTER_ROOT ${CMAKE_SOURCE_DIR}/ThirdParty/hunter) # in case of Hunter build problems
 #set(HUNTER_BINARY_DIR ${CMAKE_SOURCE_DIR}/ThirdParty/hunter) # in case of Hunter build problems
 #If windows build fails, consider changing HUNTER_ROOT dir to shorter one, by either modifying its value or commenting out the line below:
 #set(HUNTER_ROOT "${CMAKE_SOURCE_DIR}/ThirdParty/hunter" CACHE STRING "hunter root" FORCE)
@@ -165,15 +166,15 @@ option(HUNTER_KEEP_PACKAGE_SOURCES "Keep third party sources" ON)
 
 include("${CMAKE_CURRENT_LIST_DIR}/ThirdParty/hunter/HunterGate.cmake")
 HunterGate(
-		URL "https://github.com/cpp-pm/hunter/archive/v0.24.17.tar.gz"
-		SHA1 "e6396699e414120e32557fe92db097b7655b760b"
+		URL "https://github.com/cpp-pm/hunter/archive/v0.25.3.tar.gz"
+		SHA1 "0dfbc2cb5c4cf7e83533733bdfd2125ff96680cb"
 		FILEPATH "${CMAKE_SOURCE_DIR}/ThirdParty/hunter/config.cmake"
 )
 
 project(SgxEcdsaAttestation)
 
 message("HUNTER_GATE_ROOT: ${HUNTER_GATE_ROOT}")
-file(COPY "${CMAKE_SOURCE_DIR}/ThirdParty/hunter/openssl/hunter.cmake" DESTINATION "${HUNTER_ROOT}/_Base/Download/Hunter/0.24.17/e639669/Unpacked/cmake/projects/OpenSSL/")
+file(COPY "${CMAKE_SOURCE_DIR}/ThirdParty/hunter/openssl/hunter.cmake" DESTINATION "${HUNTER_ROOT}/_Base/Download/Hunter/0.25.3/0dfbc2c/Unpacked/cmake/projects/OpenSSL/")
 
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set(CMAKE_THREAD_LIBS_INIT "-lpthread") # Could NOT find Threads (missing: Threads_FOUND) related workarounds
