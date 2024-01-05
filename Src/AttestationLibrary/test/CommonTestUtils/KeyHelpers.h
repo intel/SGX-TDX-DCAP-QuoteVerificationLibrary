@@ -39,6 +39,9 @@
 
 namespace intel { namespace sgx { namespace dcap { namespace test {
 
+// WARNING! 
+// Both private and public keys below are defined here for test purposes only! 
+// Do not use them or copy anywhere else!
 const std::string PEM_PRV = R"prv(
 -----BEGIN EC PRIVATE KEY-----
 MHcCAQEEINn0dPTHfFM1ljlBoyd6mV7dV9ukg3SpSHfpk0v13qSPoAoGCCqGSM49
