@@ -311,7 +311,7 @@ else()
 	message(FATAL_ERROR "Unsupported compiler '${CMAKE_CXX_COMPILER_ID}'. Clang 5.0, GCC and MSVC are supported")
 endif()
 
-if(NOT BUILD_ENCLAVE)
+if(ENABLE_COVERAGE)
 	# Settings for coverage support in CLion (version 2019.3 and up)
 	if("${CMAKE_C_COMPILER_ID}" MATCHES "(Apple)?[Cc]lang"
 			OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "(Apple)?[Cc]lang")
