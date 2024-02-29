@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2021 Intel Corporation. All rights reserved.
+ * Copyright (C) 2024 Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -29,17 +29,38 @@
  *
  */
 
-#ifndef SGXECDSAATTESTATION_STATUSPRINTER_H
-#define SGXECDSAATTESTATION_STATUSPRINTER_H
+#ifndef SGXECDSAATTESTATION_TDRELAUNCHCHECK_H
+#define SGXECDSAATTESTATION_TDRELAUNCHCHECK_H
 
-#include <ostream>
-#include <SgxEcdsaAttestation/QuoteVerification.h>
+#include "SgxEcdsaAttestation/QuoteVerification.h"
+#include "SgxEcdsaAttestation/AttestationParsers.h"
+#include "QuoteVerification/QuoteStructures.h"
+
+#include <optional>
+
+using namespace intel::sgx::dcap::parser::json;
 
 namespace intel::sgx::dcap {
 
-std::string printStatus(Status s);
-std::ostream &operator<<(std::ostream &os, Status status);
+#ifdef SGX_LOGS
+inline std::vector<uint8_t> tcbComponentsToVectorOfBytes(const std::vector<TcbComponent> &tcbComponents)
+{
+    std::vector<uint8_t> tcbComponentsVec;
+    tcbComponentsVec.reserve(tcbComponents.size());
+    for (const auto& component : tcbComponents)
+    {
+        tcbComponentsVec.push_back(component.getSvn());
+    }
+    return tcbComponentsVec;
+}
+#endif //SGX_LOGS
+
+Status checkForRelaunch(const std::array<uint8_t, 16> &tdReport, const TcbInfo &tcbInfo,
+                        Status sgxTcbStatus,
+                        Status tdxTcbStatus,
+                        Status tdxModuleTcbStatus,
+                        std::optional<Status> qeTcbStatus);
 
 }
 
-#endif //SGXECDSAATTESTATION_STATUSPRINTER_H
+#endif //SGXECDSAATTESTATION_TDRELAUNCHCHECK_H

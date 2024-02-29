@@ -190,6 +190,7 @@ Status sgxAttestationVerifyPCKRevocationList(const char* crl, const char *pemCAC
 Status sgxAttestationVerifyTCBInfo(const char *tcbInfo, const char *pemCertChain, const char *stringRootCaCrl,
         const char *pemRootCaCertificate, const time_t* expirationDate)
 {
+    /// 4.1.2.7.1
     time_t currentTime;
     try
     {
@@ -210,6 +211,7 @@ Status sgxAttestationVerifyTCBInfo(const char *tcbInfo, const char *pemCertChain
         return STATUS_UNSUPPORTED_CERT_FORMAT;
     }
 
+    /// 4.1.2.7.2 && 4.1.2.7.3
     dcap::parser::json::TcbInfo tcbInfoJson;
     try
     {

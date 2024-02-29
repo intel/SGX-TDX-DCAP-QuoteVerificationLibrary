@@ -93,7 +93,7 @@ struct VerifyQuoteIT : public Test
     string fmspcStr = "04F34445AA00";
     string pceIdStr = "04F3";
     string status = "UpToDate";
-    uint32_t tcbType = 1;
+    uint32_t tcbType = 0;
     uint32_t tcbEvaluationDataNumber = 1;
     std::string tcbDate = "2018-08-01T10:00:00Z";
     string miscselect = "";
@@ -139,7 +139,7 @@ struct VerifyQuoteIT : public Test
         });
 
         positiveSgxTcbInfoV3JsonBody = tcbInfoJsonV3Body("SGX", 3, issueDate, nextUpdate, fmspcStr, pceIdStr,
-                                                         1, 1, sgxTcbLevels, false, tdxModule);
+                                                         0, 1, sgxTcbLevels, false, tdxModule);
 
 
         tdxTcbLevels.push_back(TcbLevelV3{
@@ -150,7 +150,7 @@ struct VerifyQuoteIT : public Test
                 "2058-08-23T10:09:10Z"
         });
         positiveTdxTcbInfoV3JsonBody = tcbInfoJsonV3Body("TDX", 3, issueDate, nextUpdate, fmspcStr, pceIdStr,
-                                                         1, 1, tdxTcbLevels, true, tdxModule);
+                                                         0, 1, tdxTcbLevels, true, tdxModule);
         EnclaveIdentityVectorModel model;
         positiveQEIdentityV2JsonBody = model.toV2JSON();
         model.applyTo(enclaveReport);
@@ -599,7 +599,7 @@ TEST_F(VerifyQuoteIT, shouldReturnedStatusOKWhenVerifyTdxQuoteV4Successfully)
 
     tdxTcbLevels[0].tdxTcbComponents[1].svn = 0; // major TDX module version. To skip TDX Module identity matching
     positiveTdxTcbInfoV3JsonBody = tcbInfoJsonV3Body("TDX", 3, issueDate, nextUpdate, fmspcStr, pceIdStr,
-                                                     1, 1, tdxTcbLevels, true, tdxModule);
+                                                     0, 1, tdxTcbLevels, true, tdxModule);
 
     quoteV4Generator.getHeader().teeType = constants::TEE_TYPE_TDX;
     std::copy_n(tdxModule.mrsigner.begin(), tdxModule.mrsigner.size(), quoteV4Generator.getTdReport().mrSignerSeam.begin());
@@ -798,7 +798,7 @@ TEST_F(VerifyQuoteIT, shouldReturnedStatusOKWhenVerifyTdxQuoteV4WithoutQeIdentit
 
     tdxTcbLevels[0].tdxTcbComponents[1].svn = 0; // major TDX module version. To skip TDX Module identity matching
     positiveTdxTcbInfoV3JsonBody = tcbInfoJsonV3Body("TDX", 3, issueDate, nextUpdate, fmspcStr, pceIdStr,
-                                                     1, 1, tdxTcbLevels, true, tdxModule);
+                                                     0, 1, tdxTcbLevels, true, tdxModule);
 
     quoteV4Generator.getHeader().teeType = constants::TEE_TYPE_TDX;
     std::copy_n(tdxModule.mrsigner.begin(), tdxModule.mrsigner.size(), quoteV4Generator.getTdReport().mrSignerSeam.begin());

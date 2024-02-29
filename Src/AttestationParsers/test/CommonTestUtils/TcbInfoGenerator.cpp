@@ -139,7 +139,7 @@ const std::string validTcbInfoV2Template = R"json({
             "nextUpdate": "2018-06-21T12:36:02Z",
             "fmspc": "0192837465AF",
             "pceId": "0000",
-            "tcbType": 1,
+            "tcbType": 0,
             "tcbEvaluationDataNumber": 1,
             "tcbLevels": [%s]
         },
@@ -153,7 +153,7 @@ const std::string validTdxTcbInfoV3Template = R"json({
             "nextUpdate": "2018-06-21T12:36:02Z",
             "fmspc": "0192837465AF",
             "pceId": "0000",
-            "tcbType": 1,
+            "tcbType": 0,
             "tcbEvaluationDataNumber": 1,
             "tdxModule": {
                 "mrsigner": "000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F202122232425262728292A2B2C2D2E2F",
@@ -172,7 +172,7 @@ const std::string validSgxTcbInfoV3Template = R"json({
             "nextUpdate": "2018-06-21T12:36:02Z",
             "fmspc": "0192837465AF",
             "pceId": "0000",
-            "tcbType": 1,
+            "tcbType": 0,
             "tcbEvaluationDataNumber": 1,
             "tcbLevels": [%s]
         },
@@ -192,7 +192,7 @@ const std::string validTdxModuleIdentitiesTemplate = R"(
 
 const std::string validSignatureTemplate = R"json("signature": "62f2eb97227d906c158e8500964c8d10029e1a318e0e95054fbc1b9636913555d7147ceefe07c4cb7ac1ac700093e2ee3fd4f7d00c7caf135dc5243be51e1def")json";
 
-const int DEFAULT_TCB_TYPE = 1;
+const int DEFAULT_TCB_TYPE = 0;
 const int DEFAULT_TCB_EVALUATION_DATA_NUMBER = 1;
 const std::vector<uint8_t> DEFAULT_CPUSVN {12, 23, 34, 45, 100, 0, 1, 156, 208, 255, 2, 3, 4, 5, 6, 7};
 const int DEFAULT_PCESVN = 30865;
@@ -222,7 +222,7 @@ const std::vector<uint8_t> DEFAULT_INFO_BODY = { 0x7B, 0x22, 0x76, 0x65, 0x72, 0
                                                  0x46, 0x22, 0x2C, 0x22, 0x70, 0x63, 0x65, 0x49,
                                                  0x64, 0x22, 0x3A, 0x22, 0x30, 0x30, 0x30, 0x30,
                                                  0x22, 0x2C, 0x22, 0x74, 0x63, 0x62, 0x54, 0x79,
-                                                 0x70, 0x65, 0x22, 0x3A, 0x31, 0x2C, 0x22, 0x74,
+                                                 0x70, 0x65, 0x22, 0x3A, 0x30, 0x2C, 0x22, 0x74,
                                                  0x63, 0x62, 0x45, 0x76, 0x61, 0x6C, 0x75, 0x61,
                                                  0x74, 0x69, 0x6F, 0x6E, 0x44, 0x61, 0x74, 0x61,
                                                  0x4E, 0x75, 0x6D, 0x62, 0x65, 0x72, 0x22, 0x3A,

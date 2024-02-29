@@ -61,6 +61,7 @@ file(GLOB SOURCE_FILES src/*.cpp
         src/CertVerification/*.cpp
         src/QuoteVerification/*.cpp
         src/Verifiers/*.cpp
+        src/Verifiers/Checks/*.cpp
         src/Utils/*.cpp
         include/SgxEcdsaAttestation/*.h
         )

@@ -169,7 +169,7 @@ TEST_F(TcbInfoV3UT, shouldFailWhenTdxTcbInfoDoesntHaveTdxModule)
             "nextUpdate": "2018-06-21T12:36:02Z",
             "fmspc": "0192837465AF",
             "pceId": "0000",
-            "tcbType": 1,
+            "tcbType": 0,
             "tcbEvaluationDataNumber": 1,
             "tcbLevels": [%s]
         },
@@ -196,7 +196,7 @@ TEST_F(TcbInfoV3UT, shouldFailWhenSgxTcbInfoHaveTdxModule)
             "nextUpdate": "2018-06-21T12:36:02Z",
             "fmspc": "0192837465AF",
             "pceId": "0000",
-            "tcbType": 1,
+            "tcbType": 0,
             "tcbEvaluationDataNumber": 1,
             "tdxModule": {
                 "mrsigner": "000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F202122232425262728292A2B2C2D2E2F",
@@ -228,7 +228,7 @@ TEST_F(TcbInfoV3UT, shouldFailWhenTdxModuleMrSignerIsNotHexstring)
             "nextUpdate": "2018-06-21T12:36:02Z",
             "fmspc": "0192837465AF",
             "pceId": "0000",
-            "tcbType": 1,
+            "tcbType": 0,
             "tcbEvaluationDataNumber": 1,
             "tdxModule": {
                 "mrsigner": "ZZZZ02030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F202122232425262728292A2B2C2D2E2F",
@@ -261,7 +261,7 @@ TEST_F(TcbInfoV3UT, shouldFailWhenTdxModuleMrSignerHasIncorrectLength)
             "nextUpdate": "2018-06-21T12:36:02Z",
             "fmspc": "0192837465AF",
             "pceId": "0000",
-            "tcbType": 1,
+            "tcbType": 0,
             "tcbEvaluationDataNumber": 1,
             "tdxModule": {
                 "mrsigner": "000102030405060708090A0B0C0D0E0F",
@@ -294,7 +294,7 @@ TEST_F(TcbInfoV3UT, shouldFailWhenTdxModuleAttributesIsNotHexstring)
             "nextUpdate": "2018-06-21T12:36:02Z",
             "fmspc": "0192837465AF",
             "pceId": "0000",
-            "tcbType": 1,
+            "tcbType": 0,
             "tcbEvaluationDataNumber": 1,
             "tdxModule": {
                 "mrsigner": "000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F202122232425262728292A2B2C2D2E2F",
@@ -327,7 +327,7 @@ TEST_F(TcbInfoV3UT, shouldFailWhenTdxModuleAttributesHasIncorrectLength)
             "nextUpdate": "2018-06-21T12:36:02Z",
             "fmspc": "0192837465AF",
             "pceId": "0000",
-            "tcbType": 1,
+            "tcbType": 0,
             "tcbEvaluationDataNumber": 1,
             "tdxModule": {
                 "mrsigner": "000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F202122232425262728292A2B2C2D2E2F",
@@ -360,7 +360,7 @@ TEST_F(TcbInfoV3UT, shouldFailWhenTdxModuleAttributesMaskIsNotHexstring)
             "nextUpdate": "2018-06-21T12:36:02Z",
             "fmspc": "0192837465AF",
             "pceId": "0000",
-            "tcbType": 1,
+            "tcbType": 0,
             "tcbEvaluationDataNumber": 1,
             "tdxModule": {
                 "mrsigner": "000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F202122232425262728292A2B2C2D2E2F",
@@ -393,7 +393,7 @@ TEST_F(TcbInfoV3UT, shouldFailWhenTdxModuleAttributesMaskHasIncorrectLength)
             "nextUpdate": "2018-06-21T12:36:02Z",
             "fmspc": "0192837465AF",
             "pceId": "0000",
-            "tcbType": 1,
+            "tcbType": 0,
             "tcbEvaluationDataNumber": 1,
             "tdxModule": {
                 "mrsigner": "000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F202122232425262728292A2B2C2D2E2F",
@@ -426,7 +426,7 @@ TEST_F(TcbInfoV3UT, shouldFailWhenTdxModuleIsNotObject)
             "nextUpdate": "2018-06-21T12:36:02Z",
             "fmspc": "0192837465AF",
             "pceId": "0000",
-            "tcbType": 1,
+            "tcbType": 0,
             "tcbEvaluationDataNumber": 1,
             "tdxModule": 5,
             "tcbLevels": [%s]
@@ -454,7 +454,7 @@ TEST_F(TcbInfoV3UT, shouldFailWhenTcbInfoDoesntHaveId)
             "nextUpdate": "2018-06-21T12:36:02Z",
             "fmspc": "0192837465AF",
             "pceId": "0000",
-            "tcbType": 1,
+            "tcbType": 0,
             "tcbEvaluationDataNumber": 1,
             "mrsignerseam": "0A0B0C0D0E0F010203040506",
             "tcbLevels": [%s]
@@ -483,7 +483,7 @@ TEST_F(TcbInfoV3UT, shouldFailWhenTcbInfoHasInvalidId)
             "nextUpdate": "2018-06-21T12:36:02Z",
             "fmspc": "0192837465AF",
             "pceId": "0000",
-            "tcbType": 1,
+            "tcbType": 0,
             "tcbEvaluationDataNumber": 1,
             "mrsignerseam": "0A0B0C0D0E0F010203040506",
             "tcbLevels": [%s]
@@ -512,7 +512,7 @@ TEST_F(TcbInfoV3UT, shouldFailWhenIdIsNotString)
             "nextUpdate": "2018-06-21T12:36:02Z",
             "fmspc": "0192837465AF",
             "pceId": "0000",
-            "tcbType": 1,
+            "tcbType": 0,
             "tcbEvaluationDataNumber": 1,
             "mrsignerseam": "0A0B0C0D0E0F010203040506",
             "tcbLevels": [%s]
