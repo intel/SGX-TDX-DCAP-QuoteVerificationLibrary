@@ -293,7 +293,7 @@ TEST_F(QuoteV4VerifierUT, shouldVerifyTdxCorrectly)
     tcbs.insert(tcbs.begin(), TcbLevel{"TDX", sgxTcbComponents, tdxTcbComponents, toUint16(pcesvn[1], pcesvn[0]), "UpToDate"});
     EXPECT_CALL(tcbInfoJson, getId()).WillRepeatedly(testing::Return("TDX"));
     EXPECT_CALL(tcbInfoJson, getVersion()).WillRepeatedly(testing::Return(3));
-    EXPECT_CALL(tcbInfoJson, getTcbLevels()).WillOnce(testing::ReturnRef(tcbs));
+    EXPECT_CALL(tcbInfoJson, getTcbLevels()).WillRepeatedly(testing::ReturnRef(tcbs));
     EXPECT_CALL(enclaveIdentityV2, getID()).WillOnce(testing::Return(EnclaveID::TD_QE));
 
     dcap::Quote quote;
@@ -657,7 +657,7 @@ TEST_F(QuoteV4VerifierUT, shouldBackoffToLowerLevelBecauseTdReportTeeSvnIsOutOfD
 
     EXPECT_CALL(tcbInfoJson, getId()).WillRepeatedly(testing::Return("TDX"));
     EXPECT_CALL(tcbInfoJson, getVersion()).WillRepeatedly(testing::Return(3));
-    EXPECT_CALL(tcbInfoJson, getTcbLevels()).WillOnce(testing::ReturnRef(tcbs));
+    EXPECT_CALL(tcbInfoJson, getTcbLevels()).WillRepeatedly(testing::ReturnRef(tcbs));
     EXPECT_CALL(enclaveIdentityV2, getID()).WillOnce(testing::Return(EnclaveID::TD_QE));
 
     dcap::Quote quote;
@@ -684,7 +684,7 @@ TEST_F(QuoteV4VerifierUT, shouldBackoffToLowerLevelBecauseNoAllSvnsAreHigher)
 
     EXPECT_CALL(tcbInfoJson, getId()).WillRepeatedly(testing::Return("TDX"));
     EXPECT_CALL(tcbInfoJson, getVersion()).WillRepeatedly(testing::Return(3));
-    EXPECT_CALL(tcbInfoJson, getTcbLevels()).WillOnce(testing::ReturnRef(tcbs));
+    EXPECT_CALL(tcbInfoJson, getTcbLevels()).WillRepeatedly(testing::ReturnRef(tcbs));
     EXPECT_CALL(enclaveIdentityV2, getID()).WillOnce(testing::Return(EnclaveID::TD_QE));
 
     dcap::Quote quote;
@@ -710,7 +710,7 @@ TEST_F(QuoteV4VerifierUT, shouldReturnTcbNotSupportedIfNotMatchingTcbLevelIsFoun
 
     EXPECT_CALL(tcbInfoJson, getId()).WillRepeatedly(testing::Return("TDX"));
     EXPECT_CALL(tcbInfoJson, getVersion()).WillRepeatedly(testing::Return(3));
-    EXPECT_CALL(tcbInfoJson, getTcbLevels()).WillOnce(testing::ReturnRef(tcbs));
+    EXPECT_CALL(tcbInfoJson, getTcbLevels()).WillRepeatedly(testing::ReturnRef(tcbs));
     EXPECT_CALL(enclaveIdentityV2, getID()).WillOnce(testing::Return(EnclaveID::TD_QE));
 
     dcap::Quote quote;

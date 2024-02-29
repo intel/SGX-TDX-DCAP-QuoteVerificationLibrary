@@ -33,8 +33,13 @@
 #define SGXECDSAATTESTATION_TCBSTATUS_H
 
 #include <string>
+#include <set>
+#include <map>
+#include "SgxEcdsaAttestation/QuoteVerification.h"
+#include "Utils/Logger.h"
+#include "Utils/RuntimeException.h"
 
-namespace intel { namespace sgx { namespace dcap {
+namespace intel::sgx::dcap {
 
 enum class TcbStatus {
     UpToDate,
@@ -72,6 +77,41 @@ inline TcbStatus parseStringToTcbStatus(const std::string& status)
     }
 }
 
-}}} // namespace intel { namespace sgx { namespace dcap {
+static const std::set<std::string> VALID_TCB_INFO_STATUSES =
+        {{ "UpToDate", "OutOfDate", "ConfigurationNeeded", "Revoked", "OutOfDateConfigurationNeeded",
+           "SWHardeningNeeded", "ConfigurationAndSWHardeningNeeded" }};
+
+static const std::set<std::string> VALID_MODULE_TCB_STATUSES =
+        {{ "UpToDate", "OutOfDate", "Revoked" }};
+
+static const std::map<std::string, Status> TCB_STATUS_MAP = {
+        {"UpToDate", STATUS_OK},
+        {"Revoked", STATUS_TCB_REVOKED},
+        {"ConfigurationNeeded", STATUS_TCB_CONFIGURATION_NEEDED},
+        {"OutOfDate", STATUS_TCB_OUT_OF_DATE},
+        {"OutOfDateConfigurationNeeded", STATUS_TCB_OUT_OF_DATE_CONFIGURATION_NEEDED},
+        {"SWHardeningNeeded", STATUS_TCB_SW_HARDENING_NEEDED},
+        {"ConfigurationAndSWHardeningNeeded", STATUS_TCB_CONFIGURATION_AND_SW_HARDENING_NEEDED},
+};
+
+inline Status stringToTcbStatus(const std::string& tcbStatus, const std::set<std::string> &validStatuses)
+{
+    if (validStatuses.find(tcbStatus) == validStatuses.end())
+    {
+        LOG_ERROR("TCB status of this structure is unrecognized: {}", tcbStatus);
+        throw RuntimeException(STATUS_TCB_UNRECOGNIZED_STATUS);
+    }
+
+    const auto &found = TCB_STATUS_MAP.find(tcbStatus);
+    if (found == TCB_STATUS_MAP.end())
+    {
+        LOG_ERROR("Unsupported TCB status: {}", tcbStatus);
+        throw RuntimeException(STATUS_TCB_UNRECOGNIZED_STATUS);
+    }
+
+    return found->second;
+}
+
+} // namespace intel::sgx::dcap {
 
 #endif //SGXECDSAATTESTATION_TCBSTATUS_H

@@ -370,6 +370,8 @@ namespace intel { namespace sgx { namespace dcap { namespace parser
             void parsePartV2(const ::rapidjson::Value &tcbInfo, JsonParser& jsonParser);
             void parsePartV3(const ::rapidjson::Value &tcbInfo);
             explicit TcbInfo(const std::string& jsonString);
+
+            friend class TcbInfoTest;
         };
 
         /**
@@ -1069,7 +1071,7 @@ namespace intel { namespace sgx { namespace dcap { namespace parser
         {
         public:
             PckCertificate() = default;
-            PckCertificate(const PckCertificate &) = delete;
+            PckCertificate(const PckCertificate &) = default;
             PckCertificate(PckCertificate &&) = default;
             virtual ~PckCertificate() = default;
 
@@ -1147,6 +1149,7 @@ namespace intel { namespace sgx { namespace dcap { namespace parser
 
             friend class ProcessorPckCertificate;
             friend class PlatformPckCertificate;
+            friend class PckCertificateTest;
         };
 
         /**

@@ -87,7 +87,7 @@ struct VerifyTCBInfoIT : public Test {
                 getRandomTcb(),                   //tcb
                 0,                         //pcesvn
                 "UpToDate",                 //status
-                1,                        //tcbType
+                0,                        //tcbType
                 1,           //tcbEvaluationDataNumber
                 "2058-08-23T10:09:10Z"    //tcbDate
         );
@@ -115,7 +115,7 @@ struct VerifyTCBInfoIT : public Test {
                 "2118-08-23T10:09:10Z", //nextUpdate
                 "04F34445AA00",         //fmspc
                 "0000",                 //pceId
-                1,                      //tcbType
+                0,                      //tcbType
                 1,                      //tcbEvaluationDataNumber
                 tcbLevels,              // tcblevels
                 false,
@@ -145,7 +145,7 @@ struct VerifyTCBInfoIT : public Test {
                 "2118-08-23T10:09:10Z", //nextUpdate
                 "04F34445AA00",         //fmspc
                 "0000",                 //pceId
-                1,                      //tcbType
+                0,                      //tcbType
                 1,                      //tcbEvaluationDataNumber
                 tcbLevels,              // tcblevels
                 true,
@@ -243,4 +243,42 @@ TEST_F(VerifyTCBInfoIT, shouldReturnCrlUnsupportedFormatWhenInvalidRootCaCrl)
 
     EXPECT_EQ(STATUS_SGX_CRL_UNSUPPORTED_FORMAT,
             sgxAttestationVerifyTCBInfo(tcbInfoJSON.c_str(), certChain.c_str(), invalidRootCaCrlPem, rootCaCertPem.c_str(), nullptr));
+}
+
+TEST_F(VerifyTCBInfoIT, verifySgxTCBInfoV3ShouldReturnTcbInfoMismatchWhenTcbTypeUnsupported)
+{
+    const auto rootCaCertPem = certGenerator.x509ToString(rootCaCert.get());
+    const auto tcbSigningPem = certGenerator.x509ToString(tcbSigningCert.get());
+    const auto certChain = rootCaCertPem  + tcbSigningPem;
+    const auto rootCaCrlPem = X509CrlGenerator::x509CrlToDERString(rootCaCrl.get());
+
+    std::vector<TcbLevelV3> tcbLevels;
+    tcbLevels.push_back(TcbLevelV3{
+            getRandomTcbComponent(),
+            getRandomTcbComponent(),
+            5,
+            "UpToDate",
+            "2058-08-23T10:09:10Z"
+    });
+    const auto tcbInfoBody = tcbInfoJsonV3Body(
+            "SGX",                  //id
+            3,                      //version
+            "2018-07-22T10:09:10Z", //issueDate
+            "2118-08-23T10:09:10Z", //nextUpdate
+            "04F34445AA00",         //fmspc
+            "0000",                 //pceId
+            42,                      //tcbType <- the invalid value
+            1,                      //tcbEvaluationDataNumber
+            tcbLevels,              // tcblevels
+            false,
+            tdxModule
+    );
+    auto tcbInfoBodyBytes = Bytes{};
+    tcbInfoBodyBytes.insert(tcbInfoBodyBytes.end(), tcbInfoBody.begin(), tcbInfoBody.end());
+    auto signature = EcdsaSignatureGenerator::signECDSA_SHA256(tcbInfoBodyBytes, tcbSigningKey.get());
+
+    const auto tcbInfoJSON = tcbInfoJsonGenerator(tcbInfoBody, EcdsaSignatureGenerator::signatureToHexString(signature));
+
+    ASSERT_EQ(STATUS_SGX_TCB_INFO_INVALID,
+              sgxAttestationVerifyTCBInfo(tcbInfoJSON.c_str(), certChain.c_str(), rootCaCrlPem.c_str(), rootCaCertPem.c_str(), nullptr));
 }
