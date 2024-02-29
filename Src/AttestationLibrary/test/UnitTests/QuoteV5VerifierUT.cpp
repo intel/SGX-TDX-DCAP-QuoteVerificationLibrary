@@ -290,7 +290,7 @@ TEST_F(QuoteV5VerifierUT, shouldVerifyTdx10Correctly)
     tcbs.insert(tcbs.begin(), TcbLevel{"TDX", sgxTcbComponents, tdxTcbComponents, toUint16(pcesvn[1], pcesvn[0]), "UpToDate"});
     EXPECT_CALL(tcbInfoJson, getId()).WillRepeatedly(testing::Return("TDX"));
     EXPECT_CALL(tcbInfoJson, getVersion()).WillRepeatedly(testing::Return(3));
-    EXPECT_CALL(tcbInfoJson, getTcbLevels()).WillOnce(testing::ReturnRef(tcbs));
+    EXPECT_CALL(tcbInfoJson, getTcbLevels()).WillRepeatedly(testing::ReturnRef(tcbs));
     EXPECT_CALL(enclaveIdentityV2, getID()).WillOnce(testing::Return(EnclaveID::TD_QE));
 
     tdxModuleTcbLevels.insert(tdxModuleTcbLevels.begin(), tdxModuleTcbLevel);
@@ -318,7 +318,7 @@ TEST_F(QuoteV5VerifierUT, shouldVerifyTdx15Correctly)
     tcbs.insert(tcbs.begin(), TcbLevel{"TDX", sgxTcbComponents, tdxTcbComponents, toUint16(pcesvn[1], pcesvn[0]), "UpToDate"});
     EXPECT_CALL(tcbInfoJson, getId()).WillRepeatedly(testing::Return("TDX"));
     EXPECT_CALL(tcbInfoJson, getVersion()).WillRepeatedly(testing::Return(3));
-    EXPECT_CALL(tcbInfoJson, getTcbLevels()).WillOnce(testing::ReturnRef(tcbs));
+    EXPECT_CALL(tcbInfoJson, getTcbLevels()).WillRepeatedly(testing::ReturnRef(tcbs));
     EXPECT_CALL(enclaveIdentityV2, getID()).WillOnce(testing::Return(EnclaveID::TD_QE));
 
     dcap::Quote quote;
@@ -346,12 +346,168 @@ TEST_F(QuoteV5VerifierUT, shouldVerifyTdx15CorrectlyWhenTdxModuleVersionIsZero)
     tcbs.insert(tcbs.begin(), TcbLevel{"TDX", sgxTcbComponents, tdxTcbComponents, toUint16(pcesvn[1], pcesvn[0]), "UpToDate"});
     EXPECT_CALL(tcbInfoJson, getId()).WillRepeatedly(testing::Return("TDX"));
     EXPECT_CALL(tcbInfoJson, getVersion()).WillRepeatedly(testing::Return(3));
-    EXPECT_CALL(tcbInfoJson, getTcbLevels()).WillOnce(testing::ReturnRef(tcbs));
+    EXPECT_CALL(tcbInfoJson, getTcbLevels()).WillRepeatedly(testing::ReturnRef(tcbs));
     EXPECT_CALL(enclaveIdentityV2, getID()).WillOnce(testing::Return(EnclaveID::TD_QE));
 
     dcap::Quote quote;
     ASSERT_TRUE(quote.parse(quoteBin));
     EXPECT_EQ(STATUS_OK, dcap::QuoteVerifier{}.verify(quote, pck, crl, tcbInfoJson, &enclaveIdentityV2, enclaveReportVerifier));
+}
+
+TEST_F(QuoteV5VerifierUT, shouldReturnStatusTcbTdRelaunchAdvisedWhenTdx15AndTdxModuleVersionIs0)
+{
+    auto header = dcap::test::QuoteV5Generator::QuoteHeader{};
+    header.version = 5;
+    header.teeType = dcap::constants::TEE_TYPE_TDX;
+    auto tdReport = dcap::test::QuoteV5Generator::TDReport15{};
+    tdReport.teeTcbSvn = { 0x50, 0x01, 0x41, 0x00, 0x00, 0x00, 0x00, 0x00, // #1 byte (ModuleVersion) is 0 to make sure that expected TDX Module TCB Levels are used.
+                           0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    tdReport.teeTcbSvn2 = { 0xF0, 0x00, 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, // #1 byte (ModuleVersion) is 0 to make sure that expected TCB Levels are used.
+                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    gen.withTDReport15(tdReport);
+    gen.withHeader(header);
+    gen.withBody({ dcap::constants::BODY_TD_REPORT15_TYPE, dcap::constants::TD_REPORT15_BYTE_LEN });
+    gen.getAuthData().ecdsaSignature.signature = signAndGetRaw(gen.getHeader().bytes() + gen.getBody().bytes() +
+                                                               gen.getTdReport15().bytes(), *privKey);
+    const auto quoteBin = gen.buildTdx15Quote();
+
+    tdxTcbComponents[1] = 0; // 0 to make sure that expected TDX Module TCB Levels are used.
+
+    tcbs.insert(TcbLevel{"TDX", sgxTcbComponents, std::vector<TcbComponent>(16, TcbComponent(0xF0)), toUint16(pcesvn[1], pcesvn[0]), "UpToDate"});
+    tcbs.insert(TcbLevel{"TDX", sgxTcbComponents, tdxTcbComponents, toUint16(pcesvn[1], pcesvn[0]), "OutOfDate"});
+
+    std::set<TdxModuleTcbLevel, std::greater<TdxModuleTcbLevel>> moduleTcbLevels = {
+            TdxModuleTcbLevel(TdxModuleTcb(81), 1, "UpToDate", std::vector<std::string>()),
+            TdxModuleTcbLevel(TdxModuleTcb(2), 1, "OutOfDate", std::vector<std::string>())};
+    const TdxModuleIdentity moduleIdentity = TdxModuleIdentity("TDX_01", tdxModuleMrSigner, tdxModuleAttributes, tdxModuleAttributesMask, moduleTcbLevels);
+    const std::vector<TdxModuleIdentity> moduleIdentities = std::vector<TdxModuleIdentity>(1, moduleIdentity);
+
+    EXPECT_CALL(tcbInfoJson, getTdxModuleIdentities()).WillRepeatedly(testing::ReturnRef(moduleIdentities));
+    EXPECT_CALL(tcbInfoJson, getId()).WillRepeatedly(testing::Return("TDX"));
+    EXPECT_CALL(tcbInfoJson, getVersion()).WillRepeatedly(testing::Return(3));
+    EXPECT_CALL(tcbInfoJson, getTcbLevels()).WillRepeatedly(testing::ReturnRef(tcbs));
+    EXPECT_CALL(enclaveIdentityV2, getID()).WillOnce(testing::Return(EnclaveID::TD_QE));
+
+    dcap::Quote quote;
+    ASSERT_TRUE(quote.parse(quoteBin));
+    EXPECT_EQ(STATUS_TCB_TD_RELAUNCH_ADVISED, dcap::QuoteVerifier{}.verify(quote, pck, crl, tcbInfoJson, &enclaveIdentityV2, enclaveReportVerifier));
+}
+
+TEST_F(QuoteV5VerifierUT, shouldReturnStatusTcbTdRelaunchAdvisedWhenTdx15AndTdxModuleVersionIs1)
+{
+    auto header = dcap::test::QuoteV5Generator::QuoteHeader{};
+    header.version = 5;
+    header.teeType = dcap::constants::TEE_TYPE_TDX;
+    auto tdReport = dcap::test::QuoteV5Generator::TDReport15{};
+    tdReport.teeTcbSvn = { 0x50, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // #1 byte is 1 to make sure that expected TDX Module TCB Levels are used.
+                           0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    tdReport.teeTcbSvn2 = { 0x52, 0x01, 0xFD, 0x00, 0x00, 0x00, 0x00, 0x00, // #1 byte is 1 to make sure that expected TDX Module TCB Levels are used.
+                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    gen.withTDReport15(tdReport);
+    gen.withHeader(header);
+    gen.withBody({ dcap::constants::BODY_TD_REPORT15_TYPE, dcap::constants::TD_REPORT15_BYTE_LEN });
+    gen.getAuthData().ecdsaSignature.signature = signAndGetRaw(gen.getHeader().bytes() + gen.getBody().bytes() +
+                                                               gen.getTdReport15().bytes(), *privKey);
+    const auto quoteBin = gen.buildTdx15Quote();
+
+    tdxTcbComponents[1] = 1; // 1 to make sure that expected TDX Module TCB Levels are used.
+
+    tcbs.insert(TcbLevel{"TDX", sgxTcbComponents, std::vector<TcbComponent>(16, TcbComponent(0xF0)), toUint16(pcesvn[1], pcesvn[0]), "UpToDate"});
+    tcbs.insert(TcbLevel{"TDX", sgxTcbComponents, tdxTcbComponents, toUint16(pcesvn[1], pcesvn[0]), "OutOfDate"});
+
+    std::set<TdxModuleTcbLevel, std::greater<TdxModuleTcbLevel>> moduleTcbLevels = {
+            TdxModuleTcbLevel(TdxModuleTcb(81), 1, "UpToDate", std::vector<std::string>()),
+            TdxModuleTcbLevel(TdxModuleTcb(2), 1, "OutOfDate", std::vector<std::string>())};
+    const TdxModuleIdentity moduleIdentity = TdxModuleIdentity("TDX_01", tdxModuleMrSigner, tdxModuleAttributes, tdxModuleAttributesMask, moduleTcbLevels);
+    const std::vector<TdxModuleIdentity> moduleIdentities = std::vector<TdxModuleIdentity>(1, moduleIdentity);
+
+    EXPECT_CALL(tcbInfoJson, getTdxModuleIdentities()).WillRepeatedly(testing::ReturnRef(moduleIdentities));
+    EXPECT_CALL(tcbInfoJson, getId()).WillRepeatedly(testing::Return("TDX"));
+    EXPECT_CALL(tcbInfoJson, getVersion()).WillRepeatedly(testing::Return(3));
+    EXPECT_CALL(tcbInfoJson, getTcbLevels()).WillRepeatedly(testing::ReturnRef(tcbs));
+    EXPECT_CALL(enclaveIdentityV2, getID()).WillOnce(testing::Return(EnclaveID::TD_QE));
+
+    dcap::Quote quote;
+    ASSERT_TRUE(quote.parse(quoteBin));
+    EXPECT_EQ(STATUS_TCB_TD_RELAUNCH_ADVISED, dcap::QuoteVerifier{}.verify(quote, pck, crl, tcbInfoJson, &enclaveIdentityV2, enclaveReportVerifier));
+}
+
+TEST_F(QuoteV5VerifierUT, shouldReturnStatusTcbTdRelaunchAdvisedConfigurationNeededWhenTdx15AndTdxModuleVersionIs0)
+{
+    auto header = dcap::test::QuoteV5Generator::QuoteHeader{};
+    header.version = 5;
+    header.teeType = dcap::constants::TEE_TYPE_TDX;
+    auto tdReport = dcap::test::QuoteV5Generator::TDReport15{};
+    tdReport.teeTcbSvn = { 0x50, 0x01, 0x41, 0x00, 0x00, 0x00, 0x00, 0x00, // #1 byte (ModuleVersion) is 0 to make sure that expected TDX Module TCB Levels are used.
+                           0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    tdReport.teeTcbSvn2 = { 0xF0, 0x00, 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, // #1 byte (ModuleVersion) is 0 to make sure that expected TCB Levels are used.
+                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    gen.withTDReport15(tdReport);
+    gen.withHeader(header);
+    gen.withBody({ dcap::constants::BODY_TD_REPORT15_TYPE, dcap::constants::TD_REPORT15_BYTE_LEN });
+    gen.getAuthData().ecdsaSignature.signature = signAndGetRaw(gen.getHeader().bytes() + gen.getBody().bytes() +
+                                                               gen.getTdReport15().bytes(), *privKey);
+    const auto quoteBin = gen.buildTdx15Quote();
+
+    tdxTcbComponents[1] = 0; // 0 to make sure that expected TDX Module TCB Levels are used.
+
+    tcbs.insert(TcbLevel{"TDX", sgxTcbComponents, std::vector<TcbComponent>(16, TcbComponent(0xF0)), toUint16(pcesvn[1], pcesvn[0]), "UpToDate"});
+    tcbs.insert(TcbLevel{"TDX", sgxTcbComponents, tdxTcbComponents, toUint16(pcesvn[1], pcesvn[0]), "OutOfDateConfigurationNeeded"});
+
+    std::set<TdxModuleTcbLevel, std::greater<TdxModuleTcbLevel>> moduleTcbLevels = {
+            TdxModuleTcbLevel(TdxModuleTcb(81), 1, "UpToDate", std::vector<std::string>()),
+            TdxModuleTcbLevel(TdxModuleTcb(2), 1, "OutOfDate", std::vector<std::string>())};
+    const TdxModuleIdentity moduleIdentity = TdxModuleIdentity("TDX_01", tdxModuleMrSigner, tdxModuleAttributes, tdxModuleAttributesMask, moduleTcbLevels);
+    const std::vector<TdxModuleIdentity> moduleIdentities = std::vector<TdxModuleIdentity>(1, moduleIdentity);
+
+    EXPECT_CALL(tcbInfoJson, getTdxModuleIdentities()).WillRepeatedly(testing::ReturnRef(moduleIdentities));
+    EXPECT_CALL(tcbInfoJson, getId()).WillRepeatedly(testing::Return("TDX"));
+    EXPECT_CALL(tcbInfoJson, getVersion()).WillRepeatedly(testing::Return(3));
+    EXPECT_CALL(tcbInfoJson, getTcbLevels()).WillRepeatedly(testing::ReturnRef(tcbs));
+    EXPECT_CALL(enclaveIdentityV2, getID()).WillOnce(testing::Return(EnclaveID::TD_QE));
+
+    dcap::Quote quote;
+    ASSERT_TRUE(quote.parse(quoteBin));
+    EXPECT_EQ(STATUS_TCB_TD_RELAUNCH_ADVISED_CONFIGURATION_NEEDED, dcap::QuoteVerifier{}.verify(quote, pck, crl, tcbInfoJson, &enclaveIdentityV2, enclaveReportVerifier));
+}
+
+TEST_F(QuoteV5VerifierUT, shouldReturnStatusTcbTdRelaunchAdvisedConfigurationNeededWhenTdx15AndTdxModuleVersionIs1)
+{
+    auto header = dcap::test::QuoteV5Generator::QuoteHeader{};
+    header.version = 5;
+    header.teeType = dcap::constants::TEE_TYPE_TDX;
+    auto tdReport = dcap::test::QuoteV5Generator::TDReport15{};
+    tdReport.teeTcbSvn = { 0x50, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // #1 byte is 1 to make sure that expected TDX Module TCB Levels are used.
+                           0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    tdReport.teeTcbSvn2 = { 0x52, 0x01, 0xFD, 0x00, 0x00, 0x00, 0x00, 0x00, // #1 byte is 1 to make sure that expected TDX Module TCB Levels are used.
+                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    gen.withTDReport15(tdReport);
+    gen.withHeader(header);
+    gen.withBody({ dcap::constants::BODY_TD_REPORT15_TYPE, dcap::constants::TD_REPORT15_BYTE_LEN });
+    gen.getAuthData().ecdsaSignature.signature = signAndGetRaw(gen.getHeader().bytes() + gen.getBody().bytes() +
+                                                               gen.getTdReport15().bytes(), *privKey);
+    const auto quoteBin = gen.buildTdx15Quote();
+
+    tdxTcbComponents[1] = 1; // 1 to make sure that expected TDX Module TCB Levels are used.
+
+    tcbs.insert(TcbLevel{"TDX", sgxTcbComponents, std::vector<TcbComponent>(16, TcbComponent(0xF0)), toUint16(pcesvn[1], pcesvn[0]), "UpToDate"});
+    tcbs.insert(TcbLevel{"TDX", sgxTcbComponents, tdxTcbComponents, toUint16(pcesvn[1], pcesvn[0]), "OutOfDateConfigurationNeeded"});
+
+    std::set<TdxModuleTcbLevel, std::greater<TdxModuleTcbLevel>> moduleTcbLevels = {
+            TdxModuleTcbLevel(TdxModuleTcb(81), 1, "UpToDate", std::vector<std::string>()),
+            TdxModuleTcbLevel(TdxModuleTcb(2), 1, "OutOfDate", std::vector<std::string>())};
+    const TdxModuleIdentity moduleIdentity = TdxModuleIdentity("TDX_01", tdxModuleMrSigner, tdxModuleAttributes, tdxModuleAttributesMask, moduleTcbLevels);
+    const std::vector<TdxModuleIdentity> moduleIdentities = std::vector<TdxModuleIdentity>(1, moduleIdentity);
+
+    EXPECT_CALL(tcbInfoJson, getTdxModuleIdentities()).WillRepeatedly(testing::ReturnRef(moduleIdentities));
+    EXPECT_CALL(tcbInfoJson, getId()).WillRepeatedly(testing::Return("TDX"));
+    EXPECT_CALL(tcbInfoJson, getVersion()).WillRepeatedly(testing::Return(3));
+    EXPECT_CALL(tcbInfoJson, getTcbLevels()).WillRepeatedly(testing::ReturnRef(tcbs));
+    EXPECT_CALL(enclaveIdentityV2, getID()).WillOnce(testing::Return(EnclaveID::TD_QE));
+
+    dcap::Quote quote;
+    ASSERT_TRUE(quote.parse(quoteBin));
+    EXPECT_EQ(STATUS_TCB_TD_RELAUNCH_ADVISED_CONFIGURATION_NEEDED, dcap::QuoteVerifier{}.verify(quote, pck, crl, tcbInfoJson, &enclaveIdentityV2, enclaveReportVerifier));
 }
 
 TEST_F(QuoteV5VerifierUT, shouldReturnStatusTdxModuleMismatchWhenSeamAttricutesNoZeroed)
@@ -727,7 +883,7 @@ TEST_F(QuoteV5VerifierUT, shouldBackoffToLowerLevelBecauseTdReportTeeSvnIsOutOfD
 
     EXPECT_CALL(tcbInfoJson, getId()).WillRepeatedly(testing::Return("TDX"));
     EXPECT_CALL(tcbInfoJson, getVersion()).WillRepeatedly(testing::Return(3));
-    EXPECT_CALL(tcbInfoJson, getTcbLevels()).WillOnce(testing::ReturnRef(tcbs));
+    EXPECT_CALL(tcbInfoJson, getTcbLevels()).WillRepeatedly(testing::ReturnRef(tcbs));
     EXPECT_CALL(enclaveIdentityV2, getID()).WillOnce(testing::Return(EnclaveID::TD_QE));
 
     dcap::Quote quote;
@@ -757,7 +913,7 @@ TEST_F(QuoteV5VerifierUT, shouldBackoffToLowerLevelBecauseNoAllSvnsAreHigher)
 
     EXPECT_CALL(tcbInfoJson, getId()).WillRepeatedly(testing::Return("TDX"));
     EXPECT_CALL(tcbInfoJson, getVersion()).WillRepeatedly(testing::Return(3));
-    EXPECT_CALL(tcbInfoJson, getTcbLevels()).WillOnce(testing::ReturnRef(tcbs));
+    EXPECT_CALL(tcbInfoJson, getTcbLevels()).WillRepeatedly(testing::ReturnRef(tcbs));
     EXPECT_CALL(enclaveIdentityV2, getID()).WillOnce(testing::Return(EnclaveID::TD_QE));
 
     dcap::Quote quote;
@@ -785,7 +941,7 @@ TEST_F(QuoteV5VerifierUT, shouldReturnTcbNotSupportedIfNotMatchingTcbLevelIsFoun
 
     EXPECT_CALL(tcbInfoJson, getId()).WillRepeatedly(testing::Return("TDX"));
     EXPECT_CALL(tcbInfoJson, getVersion()).WillRepeatedly(testing::Return(3));
-    EXPECT_CALL(tcbInfoJson, getTcbLevels()).WillOnce(testing::ReturnRef(tcbs));
+    EXPECT_CALL(tcbInfoJson, getTcbLevels()).WillRepeatedly(testing::ReturnRef(tcbs));
     EXPECT_CALL(enclaveIdentityV2, getID()).WillOnce(testing::Return(EnclaveID::TD_QE));
 
     dcap::Quote quote;

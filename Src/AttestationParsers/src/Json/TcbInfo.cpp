@@ -342,6 +342,13 @@ void TcbInfo::parsePartV2(const ::rapidjson::Value &tcbInfo, JsonParser &jsonPar
             LOG_AND_THROW(InvalidExtensionException, "Could not parse [id] field of TCB info JSON to string");
     }
 
+    /// 4.1.2.7.4
+    if (_tcbType != 0)
+    {
+        LOG_AND_THROW(InvalidExtensionException, "TcbInfo TCB Type (" + std::to_string(_tcbType)
+        + ") is not supported. Supported types are: [0]");
+    }
+
     std::tie(_tcbEvaluationDataNumber, status) = jsonParser.getUintFieldOf(tcbInfo, "tcbEvaluationDataNumber");
     switch (status)
     {

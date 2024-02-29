@@ -812,7 +812,7 @@ TEST_F(TcbInfoUT, shouldFailWhenTcbEvaluationDataNumberNotExist)
             "nextUpdate": "2018-06-21T12:36:02Z",
             "fmspc": "0192837465AF",
             "pceId": "0000",
-            "tcbType" : 1,
+            "tcbType" : 0,
             "tcbLevels": [%s]
         },
         %s})json";
@@ -840,7 +840,7 @@ TEST_F(TcbInfoUT, shouldFailWhenTcbEvaluationDataNumberInvalid)
             "nextUpdate": "2018-06-21T12:36:02Z",
             "fmspc": "0192837465AF",
             "pceId": "0000",
-            "tcbType" : 1,
+            "tcbType" : 0,
             "tcbEvaluationDataNumber": "1",
             "tcbLevels": [%s]
         },

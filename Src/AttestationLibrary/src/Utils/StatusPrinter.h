@@ -38,6 +38,7 @@
 namespace intel::sgx::dcap {
 
 std::string printStatus(Status s);
+std::string printStatusOnly(Status s);
 std::ostream &operator<<(std::ostream &os, Status status);
 
 }

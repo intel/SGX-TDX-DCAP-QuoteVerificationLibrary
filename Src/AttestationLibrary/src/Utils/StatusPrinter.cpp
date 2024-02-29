@@ -35,9 +35,15 @@
 
 namespace intel::sgx::dcap {
 
+static constexpr Status MAX_STATUS = STATUS_TCB_TD_RELAUNCH_ADVISED_CONFIGURATION_NEEDED;
+
 std::string printStatus(const Status s)
 {
-    static constexpr Status MAX_STATUS = STATUS_TCB_TD_RELAUNCH_ADVISED_CONFIGURATION_NEEDED;
+    const auto statusNumberStr = "(" + std::to_string(s) + ")";
+    return printStatusOnly(s) + statusNumberStr;
+}
+std::string printStatusOnly(const Status s)
+{
     static std::array<std::string, MAX_STATUS + 1> statusStrs = {{
         "STATUS_OK",
         "STATUS_UNSUPPORTED_CERT_FORMAT",
@@ -143,16 +149,14 @@ std::string printStatus(const Status s)
         "STATUS_TCB_TD_RELAUNCH_ADVISED",
         "STATUS_TCB_TD_RELAUNCH_ADVISED_CONFIGURATION_NEEDED"
     }};
-
-    const auto statusNumberStr = "(" + std::to_string(s) + ")";
     if (s > MAX_STATUS)
     {
-        return "Unknown status" + statusNumberStr;
+        return "Unknown status";
     }
-    return statusStrs[s] + statusNumberStr;
+    return statusStrs[s];
 }
 
-std::ostream &operator<<(std::ostream &os, Status status)
+std::ostream &operator<<(std::ostream &os, const Status status)
 {
     os << printStatus(status);
     return os;

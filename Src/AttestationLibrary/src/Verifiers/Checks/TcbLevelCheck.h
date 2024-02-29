@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2021 Intel Corporation. All rights reserved.
+ * Copyright (C) 2024 Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -29,17 +29,24 @@
  *
  */
 
-#ifndef SGXECDSAATTESTATION_STATUSPRINTER_H
-#define SGXECDSAATTESTATION_STATUSPRINTER_H
+#ifndef SGXECDSAATTESTATION_TCBLEVELCHECK_H
+#define SGXECDSAATTESTATION_TCBLEVELCHECK_H
 
-#include <ostream>
+
 #include <SgxEcdsaAttestation/QuoteVerification.h>
+#include "SgxEcdsaAttestation/AttestationParsers.h"
+#include "QuoteVerification/Quote.h"
+
+#include <optional>
+
+using namespace intel::sgx::dcap::parser::json;
 
 namespace intel::sgx::dcap {
 
-std::string printStatus(Status s);
-std::ostream &operator<<(std::ostream &os, Status status);
+Status checkTcbLevel(const TcbInfo &tcbInfo, const parser::x509::PckCertificate &pckCert, const Quote &quote,
+                     const std::optional<Status> &qeTcbStatus, std::optional<TdxModuleIdentity> &tdxModuleIdentity);
 
-}
+} // namespace intel::sgx::dcap
 
-#endif //SGXECDSAATTESTATION_STATUSPRINTER_H
+
+#endif //SGXECDSAATTESTATION_TCBLEVELCHECK_H

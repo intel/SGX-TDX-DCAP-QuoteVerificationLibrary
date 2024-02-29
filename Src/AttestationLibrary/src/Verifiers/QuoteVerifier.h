@@ -54,7 +54,7 @@ public:
                   const EnclaveReportVerifier& enclaveReportVerifier);
 
 private:
-    Status verifyCertificationData(const CertificationData& certificationData) const;
+    static Status verifyCertificationData(const CertificationData& certificationData) ;
     BaseVerifier _baseVerififer;
 };
 
