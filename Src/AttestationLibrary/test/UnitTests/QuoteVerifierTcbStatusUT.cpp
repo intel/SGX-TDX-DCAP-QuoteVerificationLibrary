@@ -132,7 +132,7 @@ Params(ti(latest(CN), earliest(OOD), module(OOD, OOD)), latestCert(), q(earliest
 
 TEST_P(QuoteVerifierTcbStatusUT, checkStatuses)
 {
-    std::optional<TdxModuleIdentity> tdxModuleIdentity; // ignore, it is not important in the current implementation
+    Optional<TdxModuleIdentity> tdxModuleIdentity; // ignore, it is not important in the current implementation
     const Params &params = GetParam();
     const auto result = checkTcbLevel(params.tcbInfo,
                                       params.certificate,

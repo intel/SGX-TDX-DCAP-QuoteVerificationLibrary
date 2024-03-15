@@ -32,15 +32,13 @@
 #ifndef SGXECDSAATTESTATION_STATUSPRINTER_H
 #define SGXECDSAATTESTATION_STATUSPRINTER_H
 
-#include <ostream>
+#include <string>
 #include <SgxEcdsaAttestation/QuoteVerification.h>
 
 namespace intel::sgx::dcap {
 
 std::string printStatus(Status s);
 std::string printStatusOnly(Status s);
-std::ostream &operator<<(std::ostream &os, Status status);
-
 }
 
 #endif //SGXECDSAATTESTATION_STATUSPRINTER_H

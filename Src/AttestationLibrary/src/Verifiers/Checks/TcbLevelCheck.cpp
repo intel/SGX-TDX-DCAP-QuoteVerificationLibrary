@@ -125,15 +125,15 @@ Status convergeTcbStatusWithQeTcbStatus(Status tcbLevelStatus, Status qeTcbStatu
     }
 }
 
-std::tuple<std::optional<TcbLevel>, std::optional<TcbLevel>>
+std::tuple<Optional<TcbLevel>, Optional<TcbLevel>>
 matchTcbLevels(const std::set<TcbLevel, std::greater<TcbLevel>>& tcbLevels,
                const parser::x509::Tcb& tcb,
-               const std::optional<std::array<uint8_t, 16>>& teeTcbSvn)
+               const Optional<std::array<uint8_t, 16>>& teeTcbSvn)
 {
     LOG_INFO("PCK TCB - cpuSvn: {}, pceSvn: {}", bytesToHexString(tcb.getCpuSvn()), tcb.getPceSvn());
 
-    std::optional<TcbLevel> sgxTcbLevel;
-    std::optional<TcbLevel> tdxTcbLevel;
+    Optional<TcbLevel> sgxTcbLevel;
+    Optional<TcbLevel> tdxTcbLevel;
     for (const auto& tcbLevel : tcbLevels)
     {
         /// 4.1.2.4.17.1 & 4.1.2.4.17.2
@@ -181,23 +181,23 @@ matchTcbLevels(const std::set<TcbLevel, std::greater<TcbLevel>>& tcbLevels,
 }
 
 Status checkTcbLevel(const TcbInfo &tcbInfo, const parser::x509::PckCertificate &pckCert, const Quote &quote,
-                     const std::optional<Status> &qeTcbStatus, std::optional<TdxModuleIdentity> &tdxModuleIdentity)
+                     const Optional<Status> &qeTcbStatus, Optional<TdxModuleIdentity> &tdxModuleIdentity)
 {
     const auto isTdx = tcbInfo.getVersion() >= 3 &&
                        tcbInfo.getId() == parser::json::TcbInfo::TDX_ID &&
                        quote.getHeader().teeType == constants::TEE_TYPE_TDX;
 
-    std::optional<std::array<uint8_t, 16>> teeTcbSvn;
+    Optional<std::array<uint8_t, 16>> teeTcbSvn;
     if (isTdx)
     {
         LOG_INFO("TD Report - tdxSvn: {}",
                  bytesToHexString(std::vector<uint8_t>(begin(quote.getTeeTcbSvn()), end(quote.getTeeTcbSvn()))));
         teeTcbSvn = quote.getTeeTcbSvn();
     }
-    std::tuple<std::optional<TcbLevel>, std::optional<TcbLevel>> tcbLevels =
+    std::tuple<Optional<TcbLevel>, Optional<TcbLevel>> tcbLevels =
             matchTcbLevels(tcbInfo.getTcbLevels(), pckCert.getTcb(), teeTcbSvn);
-    std::optional<TcbLevel> sgxTcbLevel = std::get<0>(tcbLevels);
-    std::optional<TcbLevel> tdxTcbLevel = std::get<1>(tcbLevels);
+    Optional<TcbLevel> sgxTcbLevel = std::get<0>(tcbLevels);
+    Optional<TcbLevel> tdxTcbLevel = std::get<1>(tcbLevels);
 
     if (!sgxTcbLevel)
     {

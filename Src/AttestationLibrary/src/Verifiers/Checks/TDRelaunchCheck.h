@@ -37,6 +37,7 @@
 #include "QuoteVerification/QuoteStructures.h"
 
 #include <optional>
+#include "Utils/Optional.h"
 
 using namespace intel::sgx::dcap::parser::json;
 
@@ -59,7 +60,7 @@ Status checkForRelaunch(const std::array<uint8_t, 16> &tdReport, const TcbInfo &
                         Status sgxTcbStatus,
                         Status tdxTcbStatus,
                         Status tdxModuleTcbStatus,
-                        std::optional<Status> qeTcbStatus);
+                        Optional<Status> qeTcbStatus);
 
 }
 

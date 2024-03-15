@@ -39,17 +39,18 @@
 #include "SgxEcdsaAttestation/AttestationParsers.h"
 #include "SgxEcdsaAttestation/QuoteVerification.h"
 #include "QuoteVerification/Quote.h"
+#include "Utils/Optional.h"
 
 using namespace intel::sgx::dcap::parser::json;
 
 namespace intel::sgx::dcap {
 
-std::optional<TdxModuleIdentity> findTdxModuleIdentity(std::vector<TdxModuleIdentity> tdxModuleIdentities,
+Optional<TdxModuleIdentity> findTdxModuleIdentity(std::vector<TdxModuleIdentity> tdxModuleIdentities,
                                                        const uint8_t tdxModuleVersion);
 
 Status checkTdxModuleTcbStatus(const TcbInfo &tcbInfo,
                                const Quote &quote,
-                               std::optional<TdxModuleIdentity> &tdxModuleIdentity);
+                               Optional<TdxModuleIdentity> &tdxModuleIdentity);
 
 Status convergeTcbStatusWithTdxModuleStatus(Status tcbLevelStatus, Status tdxModuleStatus);
 
