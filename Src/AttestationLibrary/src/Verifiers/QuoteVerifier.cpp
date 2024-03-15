@@ -60,7 +60,7 @@ Status QuoteVerifier::verify(const Quote& quote,
                              const EnclaveIdentityV2 *enclaveIdentity,
                              const EnclaveReportVerifier& enclaveReportVerifier)
 {
-    std::optional<Status> qeIdentityStatus;
+    Optional<Status> qeIdentityStatus;
 
     /// 4.1.2.4.4
     if (!_baseVerififer.commonNameContains(pckCert.getSubject(), constants::SGX_PCK_CN_PHRASE)) {
@@ -143,7 +143,7 @@ Status QuoteVerifier::verify(const Quote& quote,
                                         // Probably it will never happen because parsing cert should fail earlier.
     }
 
-    std::optional<TdxModuleIdentity> tdxModuleIdentity;
+    Optional<TdxModuleIdentity> tdxModuleIdentity;
 
     if (tcbInfo.getVersion() >= 3 && tcbInfo.getId() == parser::json::TcbInfo::TDX_ID)
     {

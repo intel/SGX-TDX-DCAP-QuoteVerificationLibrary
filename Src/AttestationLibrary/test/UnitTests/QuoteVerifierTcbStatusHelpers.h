@@ -125,7 +125,7 @@ public:
     explicit Params(const TcbInfo& p_tcbInfo,
                     PckCertificate p_certificate,
                     Quote p_quote,
-                    const std::optional<Status> p_qeTcbStatus,
+                    const Optional<Status> p_qeTcbStatus,
                     const Status p_result) :
             tcbInfo(p_tcbInfo),
             certificate(std::move(p_certificate)),
@@ -137,7 +137,7 @@ public:
     const TcbInfo tcbInfo;
     const PckCertificate certificate;
     const Quote quote;
-    const std::optional<Status> qeTcbStatus;
+    const Optional<Status> qeTcbStatus;
     // test output
     const Status result;
 

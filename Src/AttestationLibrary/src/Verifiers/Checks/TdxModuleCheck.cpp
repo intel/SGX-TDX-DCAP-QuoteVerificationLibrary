@@ -35,7 +35,7 @@
 
 namespace intel::sgx::dcap {
 
-std::optional<TdxModuleIdentity> findTdxModuleIdentity(std::vector<TdxModuleIdentity> tdxModuleIdentities,
+Optional<TdxModuleIdentity> findTdxModuleIdentity(std::vector<TdxModuleIdentity> tdxModuleIdentities,
                                                        const uint8_t tdxModuleVersion)
 {
     const std::string tdxModuleIdentityId = "TDX_" + bytesToHexString({ tdxModuleVersion });
@@ -61,7 +61,7 @@ std::optional<TdxModuleIdentity> findTdxModuleIdentity(std::vector<TdxModuleIden
 
 Status checkTdxModuleTcbStatus(const TcbInfo &tcbInfo,
                                const Quote &quote,
-                               std::optional<TdxModuleIdentity> &tdxModuleIdentity)
+                               Optional<TdxModuleIdentity> &tdxModuleIdentity)
 {
     const auto &tdxModuleVersion = quote.getTeeTcbSvn()[1];
     const auto &tdxModuleIsvSvn = quote.getTeeTcbSvn()[0];

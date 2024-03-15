@@ -155,11 +155,4 @@ std::string printStatusOnly(const Status s)
     }
     return statusStrs[s];
 }
-
-std::ostream &operator<<(std::ostream &os, const Status status)
-{
-    os << printStatus(status);
-    return os;
-}
-
 }
