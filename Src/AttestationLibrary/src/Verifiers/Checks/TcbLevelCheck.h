@@ -38,13 +38,14 @@
 #include "QuoteVerification/Quote.h"
 
 #include <optional>
+#include "Utils/Optional.h"
 
 using namespace intel::sgx::dcap::parser::json;
 
 namespace intel::sgx::dcap {
 
 Status checkTcbLevel(const TcbInfo &tcbInfo, const parser::x509::PckCertificate &pckCert, const Quote &quote,
-                     const std::optional<Status> &qeTcbStatus, std::optional<TdxModuleIdentity> &tdxModuleIdentity);
+                     const Optional<Status> &qeTcbStatus, Optional<TdxModuleIdentity> &tdxModuleIdentity);
 
 } // namespace intel::sgx::dcap
 
