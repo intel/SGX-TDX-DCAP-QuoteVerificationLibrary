@@ -53,7 +53,7 @@ Status checkForRelaunch(const std::array<uint8_t, 16> &teeTcbSvn2, const TcbInfo
                         const Status sgxTcbStatus,
                         const Status tdxTcbStatus,
                         const Status tdxModuleTcbStatus,
-                        const std::optional<Status> qeTcbStatus)
+                        const Optional<Status> qeTcbStatus)
 {
     LOG_INFO("TD Report - TdxSvn2: {}", bytesToHexString(std::vector<uint8_t>(begin(teeTcbSvn2), end(teeTcbSvn2))));
 
