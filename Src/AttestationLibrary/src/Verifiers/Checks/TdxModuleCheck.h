@@ -33,7 +33,6 @@
 #ifndef SGXECDSAATTESTATION_TDXMODULECHECK_H
 #define SGXECDSAATTESTATION_TDXMODULECHECK_H
 
-#include <optional>
 #include "OpensslHelpers/Bytes.h"
 #include "Utils/Logger.h"
 #include "SgxEcdsaAttestation/AttestationParsers.h"
