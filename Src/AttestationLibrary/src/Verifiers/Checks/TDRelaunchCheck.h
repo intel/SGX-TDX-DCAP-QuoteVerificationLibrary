@@ -36,7 +36,6 @@
 #include "SgxEcdsaAttestation/AttestationParsers.h"
 #include "QuoteVerification/QuoteStructures.h"
 
-#include <optional>
 #include "Utils/Optional.h"
 
 using namespace intel::sgx::dcap::parser::json;

@@ -39,7 +39,6 @@
 
 #include <algorithm>
 #include <functional>
-#include <optional>
 
 #include <CertVerification/X509Constants.h>
 #include <QuoteVerification/QuoteConstants.h>
